@@ -1,0 +1,871 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Papara Tarzı Hesap Kitap — Düzeltildi</title>
+
+  <!-- Bootstrap -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <style>
+    :root{
+      --bg: #f5f6f8;
+      --card: #fff;
+      --text: #222;
+      --muted:#666;
+      --accent: #6c63ff;
+      --accent-dark: #5b4ff2;
+      --income: #00c853;
+      --expense: #ff5252;
+    }
+    body.dark {
+      --bg: #0f1115;
+      --card: #141518;
+      --text: #eaeaea;
+      --muted:#9f9f9f;
+      --accent: #8a7bff;
+      --accent-dark: #7a6bff;
+    }
+    body{
+      background: var(--bg);
+      color: var(--text);
+      transition: background .25s, color .25s;
+      font-family: "Segoe UI", system-ui, -apple-system, "Helvetica Neue", Arial;
+      padding-bottom:80px;
+    }
+
+    /* HEADER (Papara tarzı) */
+    .top-header{
+      max-width:1100px;
+      margin: 18px auto 8px;
+      text-align:center;
+      padding: 22px;
+      border-radius:18px;
+      background: linear-gradient(135deg,var(--accent),var(--accent-dark));
+      color: #fff;
+      box-shadow: 0 10px 30px rgba(50,40,120,0.12);
+      position: relative;
+    }
+    .top-header small { opacity: .9; }
+    .balance-big {
+      font-size: 2.6rem;
+      font-weight:700;
+      margin-top:6px;
+    }
+
+    /* fancy balance card */
+    .balance-fancy {
+      display:inline-block;
+      padding:10px 18px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.12);
+      box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+      transform: translateY(6px);
+    }
+    .balance-animated { font-feature-settings: "tnum"; }
+
+    /* Filters container */
+    .filters-row{
+      max-width:1100px;
+      margin: 14px auto;
+      display:flex;
+      gap:10px;
+      align-items:center;
+      flex-wrap:wrap;
+      justify-content:center;
+    }
+    .filter-pill{
+      background: var(--card);
+      border-radius: 12px;
+      padding:8px 10px;
+      box-shadow: 0 6px 16px rgba(0,0,0,0.06);
+      display:flex;
+      gap:8px;
+      align-items:center;
+    }
+    .filter-pill select, .filter-pill input{
+      border: none;
+      background: transparent;
+      min-width:120px;
+      color: var(--text) !important;
+    }
+
+    /* make inputs visible in dark mode & placeholders */
+    input, select, .form-control, .form-select {
+      color: var(--text) !important;
+      background: transparent !important;
+    }
+    input::placeholder, textarea::placeholder { color: var(--muted) !important; }
+
+    /* search small expand */
+    .search-small{
+      width:140px;
+      transition: width .24s, box-shadow .24s;
+      min-width: 120px;
+    }
+    .search-small:focus{
+      width:320px;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.12);
+    }
+
+    /* cards area */
+    .container-cards{
+      max-width:1100px;
+      margin: 12px auto 80px;
+    }
+    .record-card{
+      background: var(--card);
+      border-radius: 12px;
+      padding: 14px;
+      margin-bottom: 12px;
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      box-shadow: 0 6px 18px rgba(16,16,30,0.04);
+      border-left: 6px solid transparent;
+    }
+    .record-card.income{ border-left-color: var(--income); }
+    .record-card.expense{ border-left-color: var(--expense); }
+
+    .tag-chip{
+      background: rgba(0,0,0,0.06);
+      border-radius:10px;
+      padding:4px 8px;
+      margin-right:6px;
+      font-size:.85rem;
+      display:inline-block;
+    }
+
+    /* floating add button */
+    .floating-btn{
+      position: fixed;
+      right: 22px;
+      bottom: 22px;
+      width:64px;
+      height:64px;
+      border-radius:50%;
+      background: linear-gradient(135deg,var(--accent),var(--accent-dark));
+      color:#fff;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-size:1.9rem;
+      box-shadow: 0 10px 30px rgba(90,70,200,.18);
+      z-index:1000;
+      border:none;
+    }
+
+    /* add panel - mobile bottom style */
+    .add-panel-mobile{
+      position: fixed;
+      left:0; right:0; bottom:0;
+      background:var(--card);
+      padding:14px;
+      box-shadow: 0 -8px 30px rgba(0,0,0,0.12);
+      border-radius: 14px 14px 0 0;
+      z-index:999;
+    }
+
+    /* add modal - desktop center */
+    .add-modal {
+      position: fixed;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%,-50%);
+      width: 520px;
+      max-width:94%;
+      background: var(--card);
+      padding:18px;
+      border-radius: 14px;
+      box-shadow: 0 20px 60px rgba(10,10,30,0.25);
+      z-index: 1200;
+    }
+
+    /* chart card */
+    .chart-card{
+      max-width:1100px;
+      margin: 6px auto 12px;
+      padding:12px;
+      border-radius:12px;
+      background: var(--card);
+      box-shadow: 0 6px 18px rgba(0,0,0,0.06);
+    }
+
+        /* ——— Havali Toplam Bakiye Kartı ——— */
+    .balance-card {
+    max-width: 450px;
+    margin: 30px auto 10px auto;
+    background: linear-gradient(135deg, rgba(108,99,255,0.15), rgba(0,255,204,0.15));
+    backdrop-filter: blur(10px);
+    border-radius: 25px;
+    padding: 25px 20px;
+    box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+    text-align: center;
+    transition: 0.4s ease;
+    }
+
+    body.dark .balance-card {
+    background: linear-gradient(135deg, rgba(138,123,255,0.2), rgba(0,200,255,0.1));
+    box-shadow: 0 0 30px rgba(138,123,255,0.25);
+    }
+
+    .balance-title {
+    font-family: 'Poppins', sans-serif;
+    font-weight: 300;
+    font-size: 1.1rem;
+    color: var(--text-color);
+    opacity: 0.8;
+    letter-spacing: 0.5px;
+    }
+
+    .balance-amount {
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 700;
+    font-size: clamp(2rem, 5vw, 3rem);
+    color: var(--accent-color);
+    display: flex;
+    justify-content: center;
+    align-items: baseline;
+    gap: 5px;
+    margin-top: 10px;
+    transition: transform 0.3s ease;
+    }
+
+    .balance-amount span.currency {
+    font-weight: 400;
+    background: linear-gradient(90deg, #00ffc6, #6c63ff);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    animation: shine 3s infinite linear;
+    }
+
+    @keyframes shine {
+    0% { filter: brightness(1); }
+    50% { filter: brightness(1.4); }
+    100% { filter: brightness(1); }
+    }
+
+    .balance-amount.updated {
+    transform: scale(1.08);
+    transition: transform 0.2s ease;
+    }
+
+    /* Renk kontrastı - karanlık mod */
+    body.dark .balance-title {
+    color: #e2e2e2;
+    }
+
+
+    /* desktop layout tweaks */
+    @media(min-width: 992px){
+      body { padding-bottom: 60px; }
+      .floating-btn { right: 40px; bottom: 40px; }
+      .add-panel-mobile { display:none; }
+      .add-modal { display:block; }
+    }
+    @media(max-width: 991px){
+      /* mobile */
+      .add-modal { display:none; }
+      .filters-row { padding: 6px; gap:6px; justify-content:flex-start; overflow-x:auto;}
+    }
+
+    .hidden { display:none !important; }
+    .muted { color: var(--muted); }
+    .small { font-size:.85rem; }
+    .btn-ghost{ background: transparent; border:1px solid rgba(0,0,0,0.06); }
+  </style>
+</head>
+<body>
+
+  <!-- TOP HEADER -->
+  <div class="top-header">
+    <small>Hesap Kitap</small>
+    <div class="balance-card">
+        <div class="balance-title">Toplam Bakiye</div>
+        <div class="balance-amount" id="balanceDisplay">
+            <span class="currency">₺</span><span id="balanceValue">0</span>
+        </div>
+    </div>
+
+    <div class="small muted">Toplam bakiye</div>
+    <!-- theme toggle -->
+    <div style="position: absolute; right: 20px; top: 18px;">
+      <button id="themeToggle" class="btn btn-sm btn-light">🌙</button>
+    </div>
+  </div>
+
+  <!-- FILTERS / SORTS (Bakiye altı) -->
+  <div class="filters-row" id="filtersRow">
+    <div class="filter-pill">
+      <div class="btn-group" role="group">
+        <button class="btn btn-sm btn-outline-secondary" id="filterAll">Tümü</button>
+        <button class="btn btn-sm btn-outline-secondary" id="filterIncome">Gelirler</button>
+        <button class="btn btn-sm btn-outline-secondary" id="filterExpense">Harcamalar</button>
+      </div>
+    </div>
+
+    <div class="filter-pill">
+      <select id="sortDate" class="form-select form-select-sm">
+        <option value="">Tarihe göre</option>
+        <option value="date_desc">Yeni → Eski</option>
+        <option value="date_asc">Eski → Yeni</option>
+      </select>
+    </div>
+
+    <div class="filter-pill">
+      <select id="sortAmount" class="form-select form-select-sm">
+        <option value="">Tuta göre</option>
+        <option value="amount_desc">Büyük → Küçük</option>
+        <option value="amount_asc">Küçük → Büyük</option>
+      </select>
+    </div>
+
+    <div class="filter-pill">
+      <input id="searchNote" class="form-control form-control-sm search-small" placeholder="Notlarda ara..." title="Notlarda ara (tıklayınca genişler)">
+    </div>
+
+    <div class="filter-pill">
+      <input id="dateFrom" type="date" class="form-control form-control-sm" title="Başlangıç tarihi">
+      <span class="mx-1 small muted">—</span>
+      <input id="dateTo" type="date" class="form-control form-control-sm" title="Bitiş tarihi">
+    </div>
+
+    <div class="filter-pill">
+      <input id="amountMin" type="number" class="form-control form-control-sm" placeholder="Min ₺" style="width:90px;">
+      <span class="mx-1 small muted">—</span>
+      <input id="amountMax" type="number" class="form-control form-control-sm" placeholder="Max ₺" style="width:90px;">
+    </div>
+
+    <div class="filter-pill">
+      <button id="applyFilters" class="btn btn-sm btn-primary">Uygula</button>
+      <button id="resetFilters" class="btn btn-sm btn-secondary ms-1">Sıfırla</button>
+    </div>
+  </div>
+
+  <!-- TAGS (dynamic) -->
+  <div class="filters-row" id="tagRow" style="margin-top:6px; gap:6px; justify-content:flex-start;"></div>
+
+  <!-- Chart (hidden when no records) -->
+  <div id="chartWrap" class="chart-card hidden" style="height:150px;">
+    <canvas id="summaryChart" height="120"></canvas>
+  </div>
+
+  <!-- Records -->
+  <div class="container-cards" id="records"></div>
+
+  <!-- Floating + button -->
+  <button class="floating-btn" id="openAdd">+</button>
+
+  <!-- ADD PANEL: mobile bottom -->
+  <div id="addPanelMobile" class="add-panel-mobile hidden">
+    <div class="row g-2 align-items-center">
+      <div class="col-4"><input id="m_amount" class="form-control form-control-sm" placeholder="Tutar (+/-)"></div>
+      <div class="col-8"><input id="m_note" class="form-control form-control-sm" placeholder="Not (örn: market)"></div>
+      <div class="col-5 mt-2"><input id="m_tags" class="form-control form-control-sm" placeholder="Etiket (virgülle)"></div>
+      <div class="col-5 mt-2"><input id="m_date" type="date" class="form-control form-control-sm"></div>
+      <div class="col-2 mt-2"><button id="m_save" class="btn btn-sm btn-primary w-100">Kaydet</button></div>
+    </div>
+  </div>
+
+  <!-- ADD MODAL: desktop center -->
+  <div id="addModal" class="add-modal hidden">
+    <h5 id="modalTitle">Yeni İşlem</h5>
+    <div class="row g-2 mt-2">
+      <div class="col-4"><input id="d_amount" class="form-control" placeholder="Tutar (+/-)"></div>
+      <div class="col-8"><input id="d_note" class="form-control" placeholder="Not"></div>
+      <div class="col-6 mt-2"><input id="d_tags" class="form-control" placeholder="Etiket (virgülle)"></div>
+      <div class="col-4 mt-2"><input id="d_date" type="date" class="form-control"></div>
+      <div class="col-2 mt-2"><button id="d_save" class="btn btn-primary w-100">Kaydet</button></div>
+      <div class="col-12 mt-2 text-end"><button id="d_close" class="btn btn-sm btn-ghost">Kapat</button></div>
+    </div>
+  </div>
+
+<script>
+/* ---------------------------
+  Veri modeli ve başlangıç
+----------------------------*/
+const STORAGE_KEY = "papara_hesap_records_v1";
+let records = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
+const THEME_KEY = "papara_theme";
+let editingId = null; // <-- önemli: düzenleme id'si
+
+/* DOM elemanları */
+const balanceEl = document.getElementById("balance");
+const recordsEl = document.getElementById("records");
+const chartWrap = document.getElementById("chartWrap");
+const tagRow = document.getElementById("tagRow");
+
+const openAddBtn = document.getElementById("openAdd");
+const addPanelMobile = document.getElementById("addPanelMobile");
+const addModal = document.getElementById("addModal");
+
+const m_amount = document.getElementById("m_amount");
+const m_note = document.getElementById("m_note");
+const m_tags = document.getElementById("m_tags");
+const m_date = document.getElementById("m_date");
+const m_save = document.getElementById("m_save");
+
+const d_amount = document.getElementById("d_amount");
+const d_note = document.getElementById("d_note");
+const d_tags = document.getElementById("d_tags");
+const d_date = document.getElementById("d_date");
+const d_save = document.getElementById("d_save");
+const d_close = document.getElementById("d_close");
+const modalTitle = document.getElementById("modalTitle");
+
+const themeToggle = document.getElementById("themeToggle");
+
+/* filter inputs */
+const searchNote = document.getElementById("searchNote");
+const sortDate = document.getElementById("sortDate");
+const sortAmount = document.getElementById("sortAmount");
+const dateFrom = document.getElementById("dateFrom");
+const dateTo = document.getElementById("dateTo");
+const amountMin = document.getElementById("amountMin");
+const amountMax = document.getElementById("amountMax");
+
+const applyFilters = document.getElementById("applyFilters");
+const resetFilters = document.getElementById("resetFilters");
+
+const filterAll = document.getElementById("filterAll");
+const filterIncome = document.getElementById("filterIncome");
+const filterExpense = document.getElementById("filterExpense");
+
+/* Chart setup */
+const ctx = document.getElementById("summaryChart")?.getContext?.("2d");
+let chart = null;
+function ensureChart(){
+  if(!ctx) return;
+  if(chart) chart.destroy();
+  chart = new Chart(ctx, {
+    type: 'doughnut',
+    data: {
+      labels: ['Gelir','Gider'],
+      datasets: [{
+        data: [0,0],
+        backgroundColor: ['#00c853','#ff5252']
+      }]
+    },
+    options: { plugins:{legend:{position:'bottom'}}, responsive:true, maintainAspectRatio:false }
+  });
+}
+
+/* ---------------------------
+  Yardımcı fonksiyonlar
+----------------------------*/
+function saveRecords(){
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(records));
+}
+
+function formatTL(n){
+  return n.toLocaleString('tr-TR') + " ₺";
+}
+
+/* build tags list from records (unique, insertion order preserved) */
+function getAllTags(){
+  const seenLower = new Set();
+  const ordered = [];
+  records.forEach(r => {
+    (r.tags||[]).forEach(tag => {
+      const low = (tag||"").toLowerCase();
+      if(!seenLower.has(low)){
+        seenLower.add(low);
+        ordered.push(tag);
+      }
+    });
+  });
+  return ordered;
+}
+
+/* render tag checkboxes */
+function renderTagRow(selectedTags = []){
+  tagRow.innerHTML = "";
+  const tags = getAllTags();
+  if(tags.length === 0) return;
+  const wrapper = document.createElement("div");
+  wrapper.className = "filter-pill";
+  wrapper.style.flexWrap = "wrap";
+  wrapper.style.gap = "6px";
+  tags.forEach(tag => {
+    const id = "tagchk_"+tag.replace(/\s+/g,'_') + "_" + Math.floor(Math.random()*9999);
+    const span = document.createElement("div");
+    span.className = "form-check form-check-inline";
+    span.innerHTML = `
+      <input class="form-check-input" type="checkbox" id="${id}" value="${tag}">
+      <label class="form-check-label small" for="${id}">${tag}</label>
+    `;
+    wrapper.appendChild(span);
+  });
+  tagRow.appendChild(wrapper);
+}
+
+/* animate balance number (count-up) */
+let displayedBalance = null;
+function animateBalanceTo(newVal){
+  const start = displayedBalance === null ? newVal : displayedBalance;
+  const duration = 500;
+  const startTime = performance.now();
+  function step(now){
+    const t = Math.min(1, (now - startTime)/duration);
+    const eased = t<.5 ? 2*t*t : -1 + (4 - 2*t)*t; // easeInOutQuad-ish
+    const cur = Math.round(start + (newVal - start) * eased);
+    
+    const balanceValueEl = document.getElementById("balanceValue");
+    const balanceDisplayEl = document.getElementById("balanceDisplay");
+
+    let currentBalance = parseFloat(balanceValueEl.textContent) || 0;
+    const newBalance = balance;
+    const step = (newBalance - currentBalance) / 30;
+
+    let i = 0;
+    const interval = setInterval(() => {
+    currentBalance += step;
+    balanceValueEl.textContent = currentBalance.toFixed(2);
+    i++;
+    if (i >= 30) {
+        balanceValueEl.textContent = newBalance.toFixed(2);
+        clearInterval(interval);
+    }
+    }, 20);
+
+    balanceDisplayEl.classList.add("updated");
+    setTimeout(() => balanceDisplayEl.classList.remove("updated"), 200);
+
+    if(t < 1) requestAnimationFrame(step);
+    else displayedBalance = newVal;
+  }
+  requestAnimationFrame(step);
+}
+
+/* update balance and chart using filteredRecords (to match UI) */
+function updateBalanceAndChart(filteredRecords){
+  const income = filteredRecords.filter(r=>r.type==='income').reduce((s,r)=>s+r.amount,0);
+  const expense = filteredRecords.filter(r=>r.type==='expense').reduce((s,r)=>s+r.amount,0);
+  const balance = income - expense;
+  animateBalanceTo(balance);
+  if(records.length === 0) {
+    chartWrap.classList.add("hidden");
+  } else {
+    chartWrap.classList.remove("hidden");
+    if(ctx){
+      ensureChart();
+      chart.data.datasets[0].data = [income, expense];
+      chart.update();
+    }
+  }
+}
+
+/* ---------------------------
+  Filtering & Sorting pipeline
+----------------------------*/
+function getActiveTagSelections(){
+  const boxes = tagRow.querySelectorAll('input[type="checkbox"]');
+  const selected = [];
+  boxes.forEach(b => { if(b.checked) selected.push(b.value); });
+  return selected;
+}
+
+function applyFilterSortReturn(){
+  let filtered = records.slice();
+
+  // pill filters
+  if(filterIncome.classList.contains('active')) filtered = filtered.filter(r=>r.type === 'income');
+  if(filterExpense.classList.contains('active')) filtered = filtered.filter(r=>r.type === 'expense');
+
+  // search
+  const s = searchNote.value.trim().toLowerCase();
+  if(s) filtered = filtered.filter(r => (r.note || "").toLowerCase().includes(s));
+
+  // date range
+  const from = dateFrom.value;
+  const to = dateTo.value;
+  if(from) filtered = filtered.filter(r => r.date >= from);
+  if(to) filtered = filtered.filter(r => r.date <= to);
+
+  // amount range (absolute amounts)
+  const min = parseFloat(amountMin.value);
+  const max = parseFloat(amountMax.value);
+  if(!isNaN(min)) filtered = filtered.filter(r => r.amount >= Math.abs(min));
+  if(!isNaN(max)) filtered = filtered.filter(r => r.amount <= Math.abs(max));
+
+  // tags (case-insensitive): require record to have ALL selected tags
+  const selectedTags = getActiveTagSelections();
+  if(selectedTags.length > 0){
+    filtered = filtered.filter(r => {
+      if(!r.tags || r.tags.length===0) return false;
+      const lowerTags = (r.tags||[]).map(t => t.toLowerCase());
+      return selectedTags.every(sel => lowerTags.includes(sel.toLowerCase()));
+    });
+  }
+
+  // sorting
+  if(sortDate.value === "date_desc") filtered.sort((a,b)=> b.date.localeCompare(a.date));
+  if(sortDate.value === "date_asc") filtered.sort((a,b)=> a.date.localeCompare(b.date));
+  if(sortAmount.value === "amount_desc") filtered.sort((a,b)=> b.amount - a.amount);
+  if(sortAmount.value === "amount_asc") filtered.sort((a,b)=> a.amount - b.amount);
+
+  return filtered;
+}
+
+/* ---------------------------
+  Render records list
+----------------------------*/
+function renderRecords(){
+  recordsEl.innerHTML = "";
+  const filtersRow = document.getElementById("filtersRow");
+  if(records.length === 0){
+    filtersRow.classList.add("hidden");
+    tagRow.classList.add("hidden");
+  } else {
+    filtersRow.classList.remove("hidden");
+    tagRow.classList.remove("hidden");
+  }
+
+  renderTagRow(); // rebuild tag checkboxes (unchecked by default)
+
+  const view = applyFilterSortReturn();
+  updateBalanceAndChart(view);
+
+  view.forEach((r) => {
+    const div = document.createElement("div");
+    div.className = `record-card ${r.type}`;
+    let tagsHtml = "";
+    if(r.tags && r.tags.length) tagsHtml = r.tags.map(t => `<span class="tag-chip">${escapeHtml(t)}</span>`).join("");
+    div.innerHTML = `
+      <div>
+        <div style="font-weight:650">${escapeHtml(r.note)}</div>
+        <div class="small muted" style="margin-top:6px">${r.date}${tagsHtml ? ' • ' : ''}${tagsHtml}</div>
+      </div>
+      <div style="text-align:right">
+        <div style="font-weight:700; color:${r.type==='income' ? 'var(--income)' : 'var(--expense)'}">
+          ${r.type==='income' ? '+' : '-'}${r.amount.toLocaleString('tr-TR')} ₺
+        </div>
+        <div class="mt-2">
+          <button class="btn btn-sm btn-outline-secondary me-1" onclick="openEdit(${r.id})">✏️</button>
+          <button class="btn btn-sm btn-outline-danger" onclick="deleteRecord(${r.id})">🗑️</button>
+        </div>
+      </div>
+    `;
+    recordsEl.appendChild(div);
+  });
+}
+
+function escapeHtml(text){
+  if(!text) return "";
+  return text.replace(/[&<>"'`]/g, s => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;', '`':'&#96;'}[s]));
+}
+
+/* ---------------------------
+  Add / Edit / Delete handlers
+----------------------------*/
+function openAdd(){
+  // clear editing state when opening new add
+  editingId = null;
+  modalTitle.textContent = "Yeni İşlem";
+  if(window.innerWidth >= 992){
+    addModal.classList.remove("hidden");
+    d_amount.value = "";
+    d_note.value = "";
+    d_tags.value = "";
+    d_date.value = new Date().toISOString().slice(0,10);
+  } else {
+    addPanelMobile.classList.toggle("hidden");
+    m_amount.value = "";
+    m_note.value = "";
+    m_tags.value = "";
+    m_date.value = new Date().toISOString().slice(0,10);
+  }
+}
+
+function closeAdd(){
+  addModal.classList.add("hidden");
+  addPanelMobile.classList.add("hidden");
+  // ensure editing state cleared
+  editingId = null;
+}
+
+function parseTagsRaw(raw){
+  if(!raw) return [];
+  return raw.split(",").map(t=>t.trim()).filter(Boolean);
+}
+
+function addRecordFromInputs(amountRaw, noteRaw, tagsRaw, dateRaw){
+  const val = parseFloat(amountRaw);
+  if(isNaN(val) || val === 0){
+    alert("Geçerli bir tutar gir (pozitif veya negatif sayı).");
+    return false;
+  }
+  const rec = {
+    id: Date.now() + Math.floor(Math.random()*1000),
+    amount: Math.abs(val),
+    type: val>0 ? 'income' : 'expense',
+    note: (noteRaw||"").trim() || "(not yok)",
+    tags: parseTagsRaw(tagsRaw),
+    date: dateRaw || new Date().toISOString().slice(0,10)
+  };
+  records.push(rec);
+  saveRecords();
+  closeAdd();
+  renderRecords();
+  return true;
+}
+
+/* desktop save: single handler for add & edit */
+d_save?.addEventListener('click', ()=> {
+  const rawAmt = d_amount.value;
+  const rawNote = d_note.value;
+  const rawTags = d_tags.value;
+  const rawDate = d_date.value || new Date().toISOString().slice(0,10);
+  const val = parseFloat(rawAmt);
+  if(isNaN(val) || val === 0){ alert("Geçerli tutar gir."); return; }
+
+  if(editingId === null){
+    // add new
+    addRecordFromInputs(rawAmt, rawNote, rawTags, rawDate);
+  } else {
+    // edit existing
+    const rec = records.find(r => r.id === editingId);
+    if(!rec) { alert("Düzenlenecek kayıt bulunamadı."); editingId = null; closeAdd(); return; }
+    rec.amount = Math.abs(val);
+    rec.type = val > 0 ? 'income' : 'expense';
+    rec.note = rawNote.trim() || "(not yok)";
+    rec.tags = parseTagsRaw(rawTags);
+    rec.date = rawDate;
+    saveRecords();
+    editingId = null;
+    closeAdd();
+    renderRecords();
+  }
+});
+
+/* mobile save always add (mobile edit uses prompt) */
+m_save?.addEventListener('click', ()=> {
+  addRecordFromInputs(m_amount.value, m_note.value, m_tags.value, m_date.value);
+});
+
+/* open edit by id */
+function openEdit(id){
+  const rec = records.find(r=>r.id === id);
+  if(!rec) return;
+  editingId = id;
+  modalTitle.textContent = "İşlemi Düzenle";
+  if(window.innerWidth >= 992){
+    addModal.classList.remove("hidden");
+    d_amount.value = (rec.type === 'income' ? rec.amount : -rec.amount);
+    d_note.value = rec.note;
+    d_tags.value = (rec.tags || []).join(", ");
+    d_date.value = rec.date;
+  } else {
+    // mobile prompt flow
+    const newAmt = parseFloat(prompt("Yeni tutar (pozitif gelir, negatif gider):", rec.type==='income'?rec.amount:-rec.amount));
+    if(!isNaN(newAmt) && newAmt !== 0){
+      rec.amount = Math.abs(newAmt);
+      rec.type = newAmt>0 ? 'income' : 'expense';
+    }
+    const newNote = prompt("Yeni not:", rec.note);
+    if(newNote !== null) rec.note = newNote.trim() || "(not yok)";
+    const newTags = prompt("Yeni etiketler (virgülle):", (rec.tags||[]).join(", "));
+    if(newTags !== null) rec.tags = parseTagsRaw(newTags);
+    const newDate = prompt("Yeni tarih (YYYY-AA-GG):", rec.date);
+    if(newDate && /^\d{4}-\d{2}-\d{2}$/.test(newDate)) rec.date = newDate;
+    saveRecords();
+    renderRecords();
+    editingId = null;
+  }
+}
+
+d_close?.addEventListener('click', ()=> {
+  editingId = null;
+  closeAdd();
+});
+
+/* Delete record by id */
+function deleteRecord(id){
+  if(!confirm("Bu kaydı silmek istiyor musun?")) return;
+  records = records.filter(r => r.id !== id);
+  saveRecords();
+  renderRecords();
+}
+
+/* ---------------------------
+  Filter buttons behavior
+----------------------------*/
+function setActiveFilter(btn){
+  [filterAll, filterIncome, filterExpense].forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+}
+
+filterAll.addEventListener('click', ()=> { setActiveFilter(filterAll); renderRecords(); });
+filterIncome.addEventListener('click', ()=> { setActiveFilter(filterIncome); renderRecords(); });
+filterExpense.addEventListener('click', ()=> { setActiveFilter(filterExpense); renderRecords(); });
+
+applyFilters.addEventListener('click', ()=> renderRecords());
+resetFilters.addEventListener('click', ()=> {
+  searchNote.value = "";
+  sortDate.value = "";
+  sortAmount.value = "";
+  dateFrom.value = "";
+  dateTo.value = "";
+  amountMin.value = "";
+  amountMax.value = "";
+  const boxes = tagRow.querySelectorAll('input[type="checkbox"]');
+  boxes.forEach(b => b.checked = false);
+  setActiveFilter(filterAll);
+  renderRecords();
+});
+
+searchNote.addEventListener('keydown', (e)=> { if(e.key === 'Enter') renderRecords(); });
+
+/* theme toggle */
+themeToggle.addEventListener('click', ()=>{
+  document.body.classList.toggle('dark');
+  const isDark = document.body.classList.contains('dark');
+  localStorage.setItem(THEME_KEY, isDark ? 'dark' : 'light');
+  themeToggle.textContent = isDark ? '☀️' : '🌙';
+});
+themeToggle.textContent = document.body.classList.contains('dark') ? '☀️' : '🌙';
+
+/* init theme from storage */
+if(localStorage.getItem(THEME_KEY) === 'dark') {
+  document.body.classList.add('dark');
+  themeToggle.textContent = '☀️';
+}
+
+/* init chart & UI */
+ensureChart();
+if(records.length === 0) {
+  document.getElementById("filtersRow").classList.add("hidden");
+  tagRow.classList.add("hidden");
+  chartWrap.classList.add("hidden");
+} else {
+  renderTagRow();
+}
+renderRecords();
+
+/* expose functions for inline calls */
+window.deleteRecord = deleteRecord;
+window.openEdit = openEdit;
+
+/* reactive tag checkbox -> apply */
+tagRow.addEventListener('change', (e) => {
+  if(e.target && e.target.type === 'checkbox') renderRecords();
+});
+
+/* responsive guard */
+window.addEventListener('resize', ()=> {
+  if(window.innerWidth >= 992){
+    addPanelMobile.classList.add('hidden');
+  } else {
+    addModal.classList.add('hidden');
+  }
+});
+
+/* open add button */
+openAddBtn.addEventListener('click', openAdd);
+</script>
+</body>
+</html>
