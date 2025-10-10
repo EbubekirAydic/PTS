@@ -3,10 +3,13 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Papara Tarzı Hesap Kitap — Düzeltildi</title>
+  <title>Papara Tarzı Hesap Kitap — Full</title>
 
   <!-- Bootstrap -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;600;800&family=Poppins:wght@300;500&display=swap" rel="stylesheet">
 
   <!-- Chart.js -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -17,106 +20,170 @@
       --card: #fff;
       --text: #222;
       --muted:#666;
-      --accent: #6c63ff;
-      --accent-dark: #5b4ff2;
+      --accent-1: #6c63ff;
+      --accent-2: #00ffd1;
       --income: #00c853;
       --expense: #ff5252;
     }
     body.dark {
-      --bg: #0f1115;
-      --card: #141518;
-      --text: #eaeaea;
-      --muted:#9f9f9f;
-      --accent: #8a7bff;
-      --accent-dark: #7a6bff;
+      --bg: #0b0d10;
+      --card: #0f1114;
+      --text: #e8e8e8;
+      --muted:#9a9a9a;
+      --accent-1: #8a7bff;
+      --accent-2: #00c7ff;
     }
     body{
       background: var(--bg);
       color: var(--text);
+      font-family: "Poppins", "Montserrat", system-ui, -apple-system, "Segoe UI", Roboto, Arial;
+      margin:0;
+      padding:18px 12px 90px;
       transition: background .25s, color .25s;
-      font-family: "Segoe UI", system-ui, -apple-system, "Helvetica Neue", Arial;
-      padding-bottom:80px;
     }
 
-    /* HEADER (Papara tarzı) */
-    .top-header{
-      max-width:1100px;
-      margin: 18px auto 8px;
-      text-align:center;
-      padding: 22px;
-      border-radius:18px;
-      background: linear-gradient(135deg,var(--accent),var(--accent-dark));
-      color: #fff;
-      box-shadow: 0 10px 30px rgba(50,40,120,0.12);
-      position: relative;
-    }
-    .top-header small { opacity: .9; }
-    .balance-big {
-      font-size: 2.6rem;
-      font-weight:700;
-      margin-top:6px;
-    }
-
-    /* fancy balance card */
-    .balance-fancy {
-      display:inline-block;
-      padding:10px 18px;
-      border-radius: 999px;
-      background: rgba(255,255,255,0.12);
-      box-shadow: 0 8px 24px rgba(0,0,0,0.12);
-      transform: translateY(6px);
-    }
-    .balance-animated { font-feature-settings: "tnum"; }
-
-    /* Filters container */
-    .filters-row{
-      max-width:1100px;
-      margin: 14px auto;
+    /* ===== Fancy Balance Card ===== */
+    .balance-wrap {
+      max-width:980px;
+      margin: 8px auto 14px;
       display:flex;
-      gap:10px;
+      justify-content:center;
+      align-items:center;
+      gap:18px;
+      padding: 2px;
+    }
+    .balance-card {
+      width: min(720px, 96%);
+      border-radius: 20px;
+      padding: 20px 22px;
+      position:relative;
+      overflow: visible;
+      color: #fff;
+      background: linear-gradient(135deg, rgba(108,99,255,0.95), rgba(0,255,204,0.9));
+      box-shadow: 0 12px 50px rgba(85,60,180,0.18);
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap: 18px;
+      transform-style: preserve-3d;
+    }
+    body.dark .balance-card {
+      background: linear-gradient(135deg, rgba(138,123,255,1), rgba(0,200,255,0.9));
+      box-shadow: 0 18px 60px rgba(120,95,255,0.16);
+    }
+
+    /* glass sheen layers */
+    .balance-card::before, .balance-card::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      border-radius: 20px;
+      pointer-events: none;
+    }
+    .balance-card::before {
+      background: linear-gradient(120deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02));
+      mix-blend-mode: overlay;
+      filter: blur(6px);
+      transform: translateZ(-10px);
+    }
+    .balance-card::after {
+      width: 60%;
+      height: 40%;
+      right: -10%;
+      top: -20%;
+      background: radial-gradient(circle at 20% 30%, rgba(255,255,255,0.22), rgba(255,255,255,0) 30%);
+      transform: rotate(-20deg);
+      opacity: 0.9;
+    }
+
+    .balance-left {
+      display:flex;
+      flex-direction:column;
+      gap:6px;
+      text-align:left;
+    }
+    .balance-title {
+      font-family: 'Poppins', sans-serif;
+      font-weight:300;
+      font-size: 0.95rem;
+      opacity:0.95;
+    }
+
+    .balance-amount {
+      display:flex;
+      align-items:baseline;
+      gap:8px;
+    }
+    .currency {
+      font-family: 'Montserrat', sans-serif;
+      font-weight:600;
+      font-size: clamp(1.15rem, 2.6vw, 1.5rem);
+      background: linear-gradient(90deg, rgba(255,255,255,0.95), rgba(255,255,255,0.8));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      text-shadow: 0 2px 12px rgba(0,0,0,0.15);
+    }
+    .value {
+      font-family: 'Montserrat', sans-serif;
+      font-weight:800;
+      font-size: clamp(2.1rem, 6.8vw, 3.6rem);
+      letter-spacing: -0.03em;
+      line-height:1;
+      color: white;
+      text-shadow: 0 6px 24px rgba(0,0,0,0.28);
+      transform-origin: center;
+      transition: transform .18s ease;
+    }
+    .value.updated {
+      transform: scale(1.06);
+    }
+
+    /* small subtile on right */
+    .balance-meta {
+      text-align:right;
+      min-width:160px;
+    }
+    .meta-label { font-size:.85rem; opacity:.95; }
+    .meta-sub { font-size:.95rem; font-weight:600; margin-top:6px; }
+
+    /* Accent glow */
+    .glow {
+      position:absolute; inset:auto; right: -40px; top:-20px; width:160px; height:160px; border-radius:50%;
+      filter: blur(30px); opacity:.12; pointer-events:none;
+      background: radial-gradient(circle, rgba(255,255,255,0.6), rgba(255,255,255,0) 30%);
+    }
+    body.dark .glow { background: radial-gradient(circle, rgba(255,255,255,0.25), rgba(255,255,255,0) 30%); opacity:.18; }
+
+    /* ===== Filters & UI (kept simple) ===== */
+    .filters-row{
+      max-width:980px;
+      margin: 12px auto;
+      display:flex;
+      gap:8px;
       align-items:center;
       flex-wrap:wrap;
       justify-content:center;
     }
     .filter-pill{
       background: var(--card);
-      border-radius: 12px;
-      padding:8px 10px;
-      box-shadow: 0 6px 16px rgba(0,0,0,0.06);
+      border-radius: 10px;
+      padding:6px 10px;
       display:flex;
       gap:8px;
       align-items:center;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.04);
     }
-    .filter-pill select, .filter-pill input{
-      border: none;
-      background: transparent;
-      min-width:120px;
-      color: var(--text) !important;
-    }
-
-    /* make inputs visible in dark mode & placeholders */
-    input, select, .form-control, .form-select {
-      color: var(--text) !important;
+    input.form-control, select.form-select {
       background: transparent !important;
+      color: var(--text) !important;
+      border: none;
+      min-width:120px;
     }
-    input::placeholder, textarea::placeholder { color: var(--muted) !important; }
+    input::placeholder { color: rgba(0,0,0,0.35); }
+    body.dark input::placeholder { color: rgba(255,255,255,0.35); }
 
-    /* search small expand */
-    .search-small{
-      width:140px;
-      transition: width .24s, box-shadow .24s;
-      min-width: 120px;
-    }
-    .search-small:focus{
-      width:320px;
-      box-shadow: 0 6px 20px rgba(0,0,0,0.12);
-    }
-
-    /* cards area */
-    .container-cards{
-      max-width:1100px;
-      margin: 12px auto 80px;
-    }
+    /* cards */
+    .container-cards{ max-width:980px; margin: 18px auto 120px; }
     .record-card{
       background: var(--card);
       border-radius: 12px;
@@ -125,19 +192,20 @@
       display:flex;
       justify-content:space-between;
       align-items:center;
-      box-shadow: 0 6px 18px rgba(16,16,30,0.04);
+      box-shadow: 0 8px 26px rgba(17,17,30,0.04);
       border-left: 6px solid transparent;
     }
     .record-card.income{ border-left-color: var(--income); }
     .record-card.expense{ border-left-color: var(--expense); }
+    .tag-chip{ display:inline-block; margin-left:6px; font-size:.82rem; padding:4px 8px; border-radius:999px; background: rgba(0,0,0,0.06); }
 
-    .tag-chip{
-      background: rgba(0,0,0,0.06);
-      border-radius:10px;
-      padding:4px 8px;
-      margin-right:6px;
-      font-size:.85rem;
-      display:inline-block;
+    /* modal */
+    .modal-overlay {
+      position: fixed; inset:0; display:flex; align-items:center; justify-content:center;
+      background: rgba(0,0,0,0.35); z-index:1200;
+    }
+    .modal-box {
+      width: min(640px,94%); background: var(--card); border-radius:12px; padding:18px; box-shadow: 0 30px 80px rgba(0,0,0,0.4);
     }
 
     /* floating add button */
@@ -148,501 +216,240 @@
       width:64px;
       height:64px;
       border-radius:50%;
-      background: linear-gradient(135deg,var(--accent),var(--accent-dark));
+      background: linear-gradient(135deg,var(--accent-1),var(--accent-2));
       color:#fff;
       display:flex;
       align-items:center;
       justify-content:center;
       font-size:1.9rem;
-      box-shadow: 0 10px 30px rgba(90,70,200,.18);
-      z-index:1000;
+      box-shadow: 0 12px 36px rgba(80,60,180,0.18);
+      z-index:1001;
       border:none;
     }
 
-    /* add panel - mobile bottom style */
-    .add-panel-mobile{
-      position: fixed;
-      left:0; right:0; bottom:0;
-      background:var(--card);
-      padding:14px;
-      box-shadow: 0 -8px 30px rgba(0,0,0,0.12);
-      border-radius: 14px 14px 0 0;
-      z-index:999;
+    /* responsive tweaks */
+    @media(max-width:720px){
+      .value { font-size: clamp(1.6rem, 10vw, 2.6rem); }
+      .balance-card { padding: 14px; border-radius:14px; }
+      .meta-sub { font-size:.9rem; }
     }
 
-    /* add modal - desktop center */
-    .add-modal {
-      position: fixed;
-      left: 50%;
-      top: 50%;
-      transform: translate(-50%,-50%);
-      width: 520px;
-      max-width:94%;
-      background: var(--card);
-      padding:18px;
-      border-radius: 14px;
-      box-shadow: 0 20px 60px rgba(10,10,30,0.25);
-      z-index: 1200;
-    }
-
-    /* chart card */
-    .chart-card{
-      max-width:1100px;
-      margin: 6px auto 12px;
-      padding:12px;
-      border-radius:12px;
-      background: var(--card);
-      box-shadow: 0 6px 18px rgba(0,0,0,0.06);
-    }
-
-        /* ——— Havali Toplam Bakiye Kartı ——— */
-    .balance-card {
-    max-width: 450px;
-    margin: 30px auto 10px auto;
-    background: linear-gradient(135deg, rgba(108,99,255,0.15), rgba(0,255,204,0.15));
-    backdrop-filter: blur(10px);
-    border-radius: 25px;
-    padding: 25px 20px;
-    box-shadow: 0 8px 25px rgba(0,0,0,0.15);
-    text-align: center;
-    transition: 0.4s ease;
-    }
-
-    body.dark .balance-card {
-    background: linear-gradient(135deg, rgba(138,123,255,0.2), rgba(0,200,255,0.1));
-    box-shadow: 0 0 30px rgba(138,123,255,0.25);
-    }
-
-    .balance-title {
-    font-family: 'Poppins', sans-serif;
-    font-weight: 300;
-    font-size: 1.1rem;
-    color: var(--text-color);
-    opacity: 0.8;
-    letter-spacing: 0.5px;
-    }
-
-    .balance-amount {
-    font-family: 'Montserrat', sans-serif;
-    font-weight: 700;
-    font-size: clamp(2rem, 5vw, 3rem);
-    color: var(--accent-color);
-    display: flex;
-    justify-content: center;
-    align-items: baseline;
-    gap: 5px;
-    margin-top: 10px;
-    transition: transform 0.3s ease;
-    }
-
-    .balance-amount span.currency {
-    font-weight: 400;
-    background: linear-gradient(90deg, #00ffc6, #6c63ff);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    animation: shine 3s infinite linear;
-    }
-
-    @keyframes shine {
-    0% { filter: brightness(1); }
-    50% { filter: brightness(1.4); }
-    100% { filter: brightness(1); }
-    }
-
-    .balance-amount.updated {
-    transform: scale(1.08);
-    transition: transform 0.2s ease;
-    }
-
-    /* Renk kontrastı - karanlık mod */
-    body.dark .balance-title {
-    color: #e2e2e2;
-    }
-
-
-    /* desktop layout tweaks */
-    @media(min-width: 992px){
-      body { padding-bottom: 60px; }
-      .floating-btn { right: 40px; bottom: 40px; }
-      .add-panel-mobile { display:none; }
-      .add-modal { display:block; }
-    }
-    @media(max-width: 991px){
-      /* mobile */
-      .add-modal { display:none; }
-      .filters-row { padding: 6px; gap:6px; justify-content:flex-start; overflow-x:auto;}
-    }
-
-    .hidden { display:none !important; }
-    .muted { color: var(--muted); }
-    .small { font-size:.85rem; }
-    .btn-ghost{ background: transparent; border:1px solid rgba(0,0,0,0.06); }
   </style>
 </head>
 <body>
 
-  <!-- TOP HEADER -->
-  <div class="top-header">
-    <small>Hesap Kitap</small>
-    <div class="balance-card">
+  <!-- BALANCE CARD -->
+  <div class="balance-wrap">
+    <div class="balance-card" role="region" aria-label="Toplam bakiye">
+      <div class="balance-left">
         <div class="balance-title">Toplam Bakiye</div>
-        <div class="balance-amount" id="balanceDisplay">
-            <span class="currency">₺</span><span id="balanceValue">0</span>
+        <div class="balance-amount" aria-hidden="true">
+          <div class="currency">₺</div>
+          <div id="balanceValue" class="value">0,00</div>
         </div>
-    </div>
+      </div>
 
-    <div class="small muted">Toplam bakiye</div>
-    <!-- theme toggle -->
-    <div style="position: absolute; right: 20px; top: 18px;">
-      <button id="themeToggle" class="btn btn-sm btn-light">🌙</button>
+      <div class="balance-meta">
+        <div class="meta-label">Durum</div>
+        <div id="metaSub" class="meta-sub">Güncel</div>
+      </div>
+
+      <div class="glow" aria-hidden="true"></div>
     </div>
   </div>
 
-  <!-- FILTERS / SORTS (Bakiye altı) -->
+  <!-- Filters row (kept minimal for demo) -->
   <div class="filters-row" id="filtersRow">
     <div class="filter-pill">
-      <div class="btn-group" role="group">
-        <button class="btn btn-sm btn-outline-secondary" id="filterAll">Tümü</button>
-        <button class="btn btn-sm btn-outline-secondary" id="filterIncome">Gelirler</button>
-        <button class="btn btn-sm btn-outline-secondary" id="filterExpense">Harcamalar</button>
-      </div>
+      <button id="filterAll" class="btn btn-sm btn-outline-secondary">Tümü</button>
+      <button id="filterIncome" class="btn btn-sm btn-outline-secondary ms-1">Gelir</button>
+      <button id="filterExpense" class="btn btn-sm btn-outline-secondary ms-1">Gider</button>
     </div>
-
     <div class="filter-pill">
-      <select id="sortDate" class="form-select form-select-sm">
-        <option value="">Tarihe göre</option>
-        <option value="date_desc">Yeni → Eski</option>
-        <option value="date_asc">Eski → Yeni</option>
-      </select>
+      <input id="searchNote" class="form-control form-control-sm" placeholder="Notlarda ara...">
     </div>
-
     <div class="filter-pill">
-      <select id="sortAmount" class="form-select form-select-sm">
-        <option value="">Tuta göre</option>
-        <option value="amount_desc">Büyük → Küçük</option>
-        <option value="amount_asc">Küçük → Büyük</option>
-      </select>
-    </div>
-
-    <div class="filter-pill">
-      <input id="searchNote" class="form-control form-control-sm search-small" placeholder="Notlarda ara..." title="Notlarda ara (tıklayınca genişler)">
-    </div>
-
-    <div class="filter-pill">
-      <input id="dateFrom" type="date" class="form-control form-control-sm" title="Başlangıç tarihi">
-      <span class="mx-1 small muted">—</span>
-      <input id="dateTo" type="date" class="form-control form-control-sm" title="Bitiş tarihi">
-    </div>
-
-    <div class="filter-pill">
-      <input id="amountMin" type="number" class="form-control form-control-sm" placeholder="Min ₺" style="width:90px;">
-      <span class="mx-1 small muted">—</span>
-      <input id="amountMax" type="number" class="form-control form-control-sm" placeholder="Max ₺" style="width:90px;">
-    </div>
-
-    <div class="filter-pill">
-      <button id="applyFilters" class="btn btn-sm btn-primary">Uygula</button>
-      <button id="resetFilters" class="btn btn-sm btn-secondary ms-1">Sıfırla</button>
+      <button id="openAdd" class="btn btn-sm btn-primary">+ Yeni</button>
     </div>
   </div>
 
-  <!-- TAGS (dynamic) -->
-  <div class="filters-row" id="tagRow" style="margin-top:6px; gap:6px; justify-content:flex-start;"></div>
-
-  <!-- Chart (hidden when no records) -->
-  <div id="chartWrap" class="chart-card hidden" style="height:150px;">
-    <canvas id="summaryChart" height="120"></canvas>
-  </div>
-
-  <!-- Records -->
+  <!-- Cards area -->
   <div class="container-cards" id="records"></div>
 
-  <!-- Floating + button -->
-  <button class="floating-btn" id="openAdd">+</button>
+  <!-- Chart placeholder -->
+  <div id="chartWrap" style="max-width:980px;margin:10px auto"></div>
 
-  <!-- ADD PANEL: mobile bottom -->
-  <div id="addPanelMobile" class="add-panel-mobile hidden">
-    <div class="row g-2 align-items-center">
-      <div class="col-4"><input id="m_amount" class="form-control form-control-sm" placeholder="Tutar (+/-)"></div>
-      <div class="col-8"><input id="m_note" class="form-control form-control-sm" placeholder="Not (örn: market)"></div>
-      <div class="col-5 mt-2"><input id="m_tags" class="form-control form-control-sm" placeholder="Etiket (virgülle)"></div>
-      <div class="col-5 mt-2"><input id="m_date" type="date" class="form-control form-control-sm"></div>
-      <div class="col-2 mt-2"><button id="m_save" class="btn btn-sm btn-primary w-100">Kaydet</button></div>
-    </div>
-  </div>
+  <!-- Floating add (also opens modal) -->
+  <button class="floating-btn" id="floatingAdd">+</button>
 
-  <!-- ADD MODAL: desktop center -->
-  <div id="addModal" class="add-modal hidden">
-    <h5 id="modalTitle">Yeni İşlem</h5>
-    <div class="row g-2 mt-2">
-      <div class="col-4"><input id="d_amount" class="form-control" placeholder="Tutar (+/-)"></div>
-      <div class="col-8"><input id="d_note" class="form-control" placeholder="Not"></div>
-      <div class="col-6 mt-2"><input id="d_tags" class="form-control" placeholder="Etiket (virgülle)"></div>
-      <div class="col-4 mt-2"><input id="d_date" type="date" class="form-control"></div>
-      <div class="col-2 mt-2"><button id="d_save" class="btn btn-primary w-100">Kaydet</button></div>
-      <div class="col-12 mt-2 text-end"><button id="d_close" class="btn btn-sm btn-ghost">Kapat</button></div>
+  <!-- Modal (hidden by default) -->
+  <div id="modalOverlay" class="modal-overlay" style="display:none;">
+    <div class="modal-box">
+      <h5 id="modalTitle">Yeni İşlem</h5>
+      <div class="row g-2 mt-2">
+        <div class="col-4"><input id="d_amount" class="form-control" placeholder="Tutar (+/-)"></div>
+        <div class="col-8"><input id="d_note" class="form-control" placeholder="Not"></div>
+        <div class="col-6 mt-2"><input id="d_tags" class="form-control" placeholder="Etiket (virgülle)"></div>
+        <div class="col-4 mt-2"><input id="d_date" type="date" class="form-control"></div>
+        <div class="col-2 mt-2"><button id="d_save" class="btn btn-primary w-100">Kaydet</button></div>
+        <div class="col-12 mt-2 text-end"><button id="d_close" class="btn btn-sm btn-outline-secondary">Kapat</button></div>
+      </div>
     </div>
   </div>
 
 <script>
 /* ---------------------------
-  Veri modeli ve başlangıç
+  FULL APP (single-file)
 ----------------------------*/
-const STORAGE_KEY = "papara_hesap_records_v1";
-let records = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
-const THEME_KEY = "papara_theme";
-let editingId = null; // <-- önemli: düzenleme id'si
 
-/* DOM elemanları */
-const balanceEl = document.getElementById("balance");
-const recordsEl = document.getElementById("records");
-const chartWrap = document.getElementById("chartWrap");
-const tagRow = document.getElementById("tagRow");
+/* Storage keys */
+const STORAGE_KEY = 'hesapkitap_records_v2';
+const THEME_KEY = 'hesapkitap_theme_v2';
 
-const openAddBtn = document.getElementById("openAdd");
-const addPanelMobile = document.getElementById("addPanelMobile");
-const addModal = document.getElementById("addModal");
+/* In-memory */
+let records = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+let editingId = null;
 
-const m_amount = document.getElementById("m_amount");
-const m_note = document.getElementById("m_note");
-const m_tags = document.getElementById("m_tags");
-const m_date = document.getElementById("m_date");
-const m_save = document.getElementById("m_save");
+/* DOM */
+const balanceValueEl = document.getElementById('balanceValue');
+const metaSub = document.getElementById('metaSub');
+const recordsEl = document.getElementById('records');
+const modalOverlay = document.getElementById('modalOverlay');
+const modalTitle = document.getElementById('modalTitle');
 
-const d_amount = document.getElementById("d_amount");
-const d_note = document.getElementById("d_note");
-const d_tags = document.getElementById("d_tags");
-const d_date = document.getElementById("d_date");
-const d_save = document.getElementById("d_save");
-const d_close = document.getElementById("d_close");
-const modalTitle = document.getElementById("modalTitle");
+const d_amount = document.getElementById('d_amount');
+const d_note = document.getElementById('d_note');
+const d_tags = document.getElementById('d_tags');
+const d_date = document.getElementById('d_date');
+const d_save = document.getElementById('d_save');
+const d_close = document.getElementById('d_close');
 
-const themeToggle = document.getElementById("themeToggle");
+const openAddBtn = document.getElementById('openAdd');
+const floatingAdd = document.getElementById('floatingAdd');
 
-/* filter inputs */
-const searchNote = document.getElementById("searchNote");
-const sortDate = document.getElementById("sortDate");
-const sortAmount = document.getElementById("sortAmount");
-const dateFrom = document.getElementById("dateFrom");
-const dateTo = document.getElementById("dateTo");
-const amountMin = document.getElementById("amountMin");
-const amountMax = document.getElementById("amountMax");
+const filterAll = document.getElementById('filterAll');
+const filterIncome = document.getElementById('filterIncome');
+const filterExpense = document.getElementById('filterExpense');
+const searchNote = document.getElementById('searchNote');
 
-const applyFilters = document.getElementById("applyFilters");
-const resetFilters = document.getElementById("resetFilters");
+const chartWrap = document.getElementById('chartWrap');
 
-const filterAll = document.getElementById("filterAll");
-const filterIncome = document.getElementById("filterIncome");
-const filterExpense = document.getElementById("filterExpense");
-
-/* Chart setup */
-const ctx = document.getElementById("summaryChart")?.getContext?.("2d");
 let chart = null;
-function ensureChart(){
-  if(!ctx) return;
-  if(chart) chart.destroy();
-  chart = new Chart(ctx, {
-    type: 'doughnut',
-    data: {
-      labels: ['Gelir','Gider'],
-      datasets: [{
-        data: [0,0],
-        backgroundColor: ['#00c853','#ff5252']
-      }]
-    },
-    options: { plugins:{legend:{position:'bottom'}}, responsive:true, maintainAspectRatio:false }
-  });
+
+/* Init theme */
+if(localStorage.getItem(THEME_KEY) === 'dark') document.body.classList.add('dark');
+
+/* Utility: save & format */
+function saveRecords(){ localStorage.setItem(STORAGE_KEY, JSON.stringify(records)); }
+function formatTLNumber(n){
+  // keep two decimals and thousands separators
+  return Number(n).toLocaleString('tr-TR', {minimumFractionDigits:2, maximumFractionDigits:2});
 }
 
-/* ---------------------------
-  Yardımcı fonksiyonlar
-----------------------------*/
-function saveRecords(){
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(records));
-}
-
-function formatTL(n){
-  return n.toLocaleString('tr-TR') + " ₺";
-}
-
-/* build tags list from records (unique, insertion order preserved) */
-function getAllTags(){
-  const seenLower = new Set();
-  const ordered = [];
-  records.forEach(r => {
-    (r.tags||[]).forEach(tag => {
-      const low = (tag||"").toLowerCase();
-      if(!seenLower.has(low)){
-        seenLower.add(low);
-        ordered.push(tag);
-      }
-    });
-  });
-  return ordered;
-}
-
-/* render tag checkboxes */
-function renderTagRow(selectedTags = []){
-  tagRow.innerHTML = "";
-  const tags = getAllTags();
-  if(tags.length === 0) return;
-  const wrapper = document.createElement("div");
-  wrapper.className = "filter-pill";
-  wrapper.style.flexWrap = "wrap";
-  wrapper.style.gap = "6px";
-  tags.forEach(tag => {
-    const id = "tagchk_"+tag.replace(/\s+/g,'_') + "_" + Math.floor(Math.random()*9999);
-    const span = document.createElement("div");
-    span.className = "form-check form-check-inline";
-    span.innerHTML = `
-      <input class="form-check-input" type="checkbox" id="${id}" value="${tag}">
-      <label class="form-check-label small" for="${id}">${tag}</label>
-    `;
-    wrapper.appendChild(span);
-  });
-  tagRow.appendChild(wrapper);
-}
-
-/* animate balance number (count-up) */
+/* Balance animation (requestAnimationFrame) */
+let animateFrame = null;
 let displayedBalance = null;
-function animateBalanceTo(newVal){
-  const start = displayedBalance === null ? newVal : displayedBalance;
-  const duration = 500;
+function animateBalanceTo(target){
+  if(animateFrame) cancelAnimationFrame(animateFrame);
+  const start = displayedBalance === null ? target : displayedBalance;
+  const duration = 600;
   const startTime = performance.now();
   function step(now){
     const t = Math.min(1, (now - startTime)/duration);
-    const eased = t<.5 ? 2*t*t : -1 + (4 - 2*t)*t; // easeInOutQuad-ish
-    const cur = Math.round(start + (newVal - start) * eased);
-    
-    const balanceValueEl = document.getElementById("balanceValue");
-    const balanceDisplayEl = document.getElementById("balanceDisplay");
-
-    let currentBalance = parseFloat(balanceValueEl.textContent) || 0;
-    const newBalance = balance;
-    const step = (newBalance - currentBalance) / 30;
-
-    let i = 0;
-    const interval = setInterval(() => {
-    currentBalance += step;
-    balanceValueEl.textContent = currentBalance.toFixed(2);
-    i++;
-    if (i >= 30) {
-        balanceValueEl.textContent = newBalance.toFixed(2);
-        clearInterval(interval);
-    }
-    }, 20);
-
-    balanceDisplayEl.classList.add("updated");
-    setTimeout(() => balanceDisplayEl.classList.remove("updated"), 200);
-
-    if(t < 1) requestAnimationFrame(step);
-    else displayedBalance = newVal;
+    const eased = t<.5 ? 2*t*t : -1 + (4 - 2*t)*t;
+    const cur = start + (target - start) * eased;
+    balanceValueEl.textContent = formatTLNumber(cur);
+    if(t < 1) animateFrame = requestAnimationFrame(step);
+    else { displayedBalance = target; animateFrame = null; }
   }
-  requestAnimationFrame(step);
+  animateFrame = requestAnimationFrame(step);
+  // small pop animation
+  balanceValueEl.classList.add('updated');
+  setTimeout(()=> balanceValueEl.classList.remove('updated'), 220);
 }
 
-/* update balance and chart using filteredRecords (to match UI) */
-function updateBalanceAndChart(filteredRecords){
-  const income = filteredRecords.filter(r=>r.type==='income').reduce((s,r)=>s+r.amount,0);
-  const expense = filteredRecords.filter(r=>r.type==='expense').reduce((s,r)=>s+r.amount,0);
-  const balance = income - expense;
-  animateBalanceTo(balance);
-  if(records.length === 0) {
-    chartWrap.classList.add("hidden");
-  } else {
-    chartWrap.classList.remove("hidden");
-    if(ctx){
-      ensureChart();
-      chart.data.datasets[0].data = [income, expense];
-      chart.update();
+/* Build tag order (insertion order preserved) */
+function getAllTags(){
+  const seenLower = new Set();
+  const ordered = [];
+  for(const r of records){
+    if(!r.tags) continue;
+    for(const t of r.tags){
+      const low = (t||'').toLowerCase();
+      if(!seenLower.has(low)){
+        seenLower.add(low);
+        ordered.push(t);
+      }
     }
   }
+  return ordered;
 }
 
-/* ---------------------------
-  Filtering & Sorting pipeline
-----------------------------*/
-function getActiveTagSelections(){
-  const boxes = tagRow.querySelectorAll('input[type="checkbox"]');
-  const selected = [];
-  boxes.forEach(b => { if(b.checked) selected.push(b.value); });
-  return selected;
+/* Apply filter/sort pipeline (simple for demo: supports type & search) */
+function getFilteredRecords(){
+  let out = records.slice();
+
+  // type filter via active class on buttons
+  if(filterIncome.classList.contains('active')) out = out.filter(r=> r.type === 'income');
+  if(filterExpense.classList.contains('active')) out = out.filter(r=> r.type === 'expense');
+
+  // search by note
+  const q = (searchNote.value || '').trim().toLowerCase();
+  if(q) out = out.filter(r => (r.note || '').toLowerCase().includes(q));
+
+  // default sort: newest first
+  out.sort((a,b) => b.date.localeCompare(a.date) || b.id - a.id);
+  return out;
 }
 
-function applyFilterSortReturn(){
-  let filtered = records.slice();
-
-  // pill filters
-  if(filterIncome.classList.contains('active')) filtered = filtered.filter(r=>r.type === 'income');
-  if(filterExpense.classList.contains('active')) filtered = filtered.filter(r=>r.type === 'expense');
-
-  // search
-  const s = searchNote.value.trim().toLowerCase();
-  if(s) filtered = filtered.filter(r => (r.note || "").toLowerCase().includes(s));
-
-  // date range
-  const from = dateFrom.value;
-  const to = dateTo.value;
-  if(from) filtered = filtered.filter(r => r.date >= from);
-  if(to) filtered = filtered.filter(r => r.date <= to);
-
-  // amount range (absolute amounts)
-  const min = parseFloat(amountMin.value);
-  const max = parseFloat(amountMax.value);
-  if(!isNaN(min)) filtered = filtered.filter(r => r.amount >= Math.abs(min));
-  if(!isNaN(max)) filtered = filtered.filter(r => r.amount <= Math.abs(max));
-
-  // tags (case-insensitive): require record to have ALL selected tags
-  const selectedTags = getActiveTagSelections();
-  if(selectedTags.length > 0){
-    filtered = filtered.filter(r => {
-      if(!r.tags || r.tags.length===0) return false;
-      const lowerTags = (r.tags||[]).map(t => t.toLowerCase());
-      return selectedTags.every(sel => lowerTags.includes(sel.toLowerCase()));
-    });
-  }
-
-  // sorting
-  if(sortDate.value === "date_desc") filtered.sort((a,b)=> b.date.localeCompare(a.date));
-  if(sortDate.value === "date_asc") filtered.sort((a,b)=> a.date.localeCompare(b.date));
-  if(sortAmount.value === "amount_desc") filtered.sort((a,b)=> b.amount - a.amount);
-  if(sortAmount.value === "amount_asc") filtered.sort((a,b)=> a.amount - b.amount);
-
-  return filtered;
-}
-
-/* ---------------------------
-  Render records list
-----------------------------*/
-function renderRecords(){
-  recordsEl.innerHTML = "";
-  const filtersRow = document.getElementById("filtersRow");
+/* Update chart */
+function updateChart(){
+  if(!chartWrap) return;
   if(records.length === 0){
-    filtersRow.classList.add("hidden");
-    tagRow.classList.add("hidden");
-  } else {
-    filtersRow.classList.remove("hidden");
-    tagRow.classList.remove("hidden");
+    chartWrap.innerHTML = '';
+    return;
   }
+  const income = records.filter(r=>r.type==='income').reduce((s,r)=>s+r.amount,0);
+  const expense = records.filter(r=>r.type==='expense').reduce((s,r)=>s+r.amount,0);
+  chartWrap.innerHTML = `<canvas id="summaryChart" height="120"></canvas>`;
+  const ctx = document.getElementById('summaryChart').getContext('2d');
+  if(chart) chart.destroy();
+  chart = new Chart(ctx, {
+    type:'doughnut',
+    data:{ labels:['Gelir','Gider'], datasets:[{ data:[income, expense], backgroundColor:['#00c853','#ff5252'] }]},
+    options:{plugins:{legend:{position:'bottom'}}, maintainAspectRatio:false}
+  });
+}
 
-  renderTagRow(); // rebuild tag checkboxes (unchecked by default)
+/* Render list UI */
+function renderRecords(){
+  recordsEl.innerHTML = '';
 
-  const view = applyFilterSortReturn();
-  updateBalanceAndChart(view);
+  // show/hide filters area is handled by CSS in this demo (kept simple)
+  const view = getFilteredRecords();
 
-  view.forEach((r) => {
-    const div = document.createElement("div");
-    div.className = `record-card ${r.type}`;
-    let tagsHtml = "";
-    if(r.tags && r.tags.length) tagsHtml = r.tags.map(t => `<span class="tag-chip">${escapeHtml(t)}</span>`).join("");
+  // update balance based on view
+  const income = view.filter(r=>r.type==='income').reduce((s,r)=>s+r.amount,0);
+  const expense = view.filter(r=>r.type==='expense').reduce((s,r)=>s+r.amount,0);
+  const bal = income - expense;
+  animateBalanceTo(bal);
+
+  // update meta
+  metaSub.textContent = `${view.length} işlem görüntüleniyor`;
+
+  // render items
+  for(const r of view){
+    const div = document.createElement('div');
+    div.className = 'record-card ' + (r.type === 'income' ? 'income' : 'expense');
+    const tagsHtml = (r.tags || []).map(t => `<span class="tag-chip">${escapeHtml(t)}</span>`).join('');
     div.innerHTML = `
       <div>
-        <div style="font-weight:650">${escapeHtml(r.note)}</div>
+        <div style="font-weight:700">${escapeHtml(r.note)}</div>
         <div class="small muted" style="margin-top:6px">${r.date}${tagsHtml ? ' • ' : ''}${tagsHtml}</div>
       </div>
       <div style="text-align:right">
-        <div style="font-weight:700; color:${r.type==='income' ? 'var(--income)' : 'var(--expense)'}">
-          ${r.type==='income' ? '+' : '-'}${r.amount.toLocaleString('tr-TR')} ₺
+        <div style="font-weight:800; color:${r.type === 'income' ? 'var(--income)' : 'var(--expense)'}">
+          ${r.type==='income' ? '+' : '-'}${formatTLNumber(r.amount)} ₺
         </div>
         <div class="mt-2">
           <button class="btn btn-sm btn-outline-secondary me-1" onclick="openEdit(${r.id})">✏️</button>
@@ -651,221 +458,113 @@ function renderRecords(){
       </div>
     `;
     recordsEl.appendChild(div);
-  });
+  }
+
+  updateChart();
 }
 
-function escapeHtml(text){
-  if(!text) return "";
-  return text.replace(/[&<>"'`]/g, s => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;', '`':'&#96;'}[s]));
-}
+/* escape html */
+function escapeHtml(s){ if(!s) return ''; return String(s).replace(/[&<>"'`]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;','`':'&#96;'}[c])); }
 
-/* ---------------------------
-  Add / Edit / Delete handlers
-----------------------------*/
+/* Open modal for add (clears editingId) */
 function openAdd(){
-  // clear editing state when opening new add
   editingId = null;
-  modalTitle.textContent = "Yeni İşlem";
-  if(window.innerWidth >= 992){
-    addModal.classList.remove("hidden");
-    d_amount.value = "";
-    d_note.value = "";
-    d_tags.value = "";
-    d_date.value = new Date().toISOString().slice(0,10);
-  } else {
-    addPanelMobile.classList.toggle("hidden");
-    m_amount.value = "";
-    m_note.value = "";
-    m_tags.value = "";
-    m_date.value = new Date().toISOString().slice(0,10);
-  }
+  modalTitle.textContent = 'Yeni İşlem';
+  d_amount.value = '';
+  d_note.value = '';
+  d_tags.value = '';
+  d_date.value = new Date().toISOString().slice(0,10);
+  modalOverlay.style.display = 'flex';
 }
 
-function closeAdd(){
-  addModal.classList.add("hidden");
-  addPanelMobile.classList.add("hidden");
-  // ensure editing state cleared
+/* Open modal for edit */
+function openEdit(id){
+  const rec = records.find(r=>r.id === id);
+  if(!rec) return alert('Kayıt bulunamadı');
+  editingId = id;
+  modalTitle.textContent = 'İşlemi Düzenle';
+  d_amount.value = rec.type === 'income' ? String(rec.amount) : String(-rec.amount);
+  d_note.value = rec.note;
+  d_tags.value = (rec.tags || []).join(', ');
+  d_date.value = rec.date;
+  modalOverlay.style.display = 'flex';
+}
+
+/* Close modal */
+function closeModal(){
   editingId = null;
+  modalOverlay.style.display = 'none';
 }
 
-function parseTagsRaw(raw){
-  if(!raw) return [];
-  return raw.split(",").map(t=>t.trim()).filter(Boolean);
-}
-
-function addRecordFromInputs(amountRaw, noteRaw, tagsRaw, dateRaw){
-  const val = parseFloat(amountRaw);
-  if(isNaN(val) || val === 0){
-    alert("Geçerli bir tutar gir (pozitif veya negatif sayı).");
-    return false;
-  }
-  const rec = {
-    id: Date.now() + Math.floor(Math.random()*1000),
-    amount: Math.abs(val),
-    type: val>0 ? 'income' : 'expense',
-    note: (noteRaw||"").trim() || "(not yok)",
-    tags: parseTagsRaw(tagsRaw),
-    date: dateRaw || new Date().toISOString().slice(0,10)
-  };
-  records.push(rec);
-  saveRecords();
-  closeAdd();
-  renderRecords();
-  return true;
-}
-
-/* desktop save: single handler for add & edit */
-d_save?.addEventListener('click', ()=> {
-  const rawAmt = d_amount.value;
-  const rawNote = d_note.value;
-  const rawTags = d_tags.value;
+/* add/edit saving */
+d_save.addEventListener('click', () => {
+  const rawAmt = d_amount.value.trim();
+  const rawNote = d_note.value.trim();
+  const rawTags = d_tags.value.trim();
   const rawDate = d_date.value || new Date().toISOString().slice(0,10);
   const val = parseFloat(rawAmt);
-  if(isNaN(val) || val === 0){ alert("Geçerli tutar gir."); return; }
+  if(isNaN(val) || val === 0){ alert('Geçerli bir tutar gir (pozitif veya negatif sayı).'); return; }
 
   if(editingId === null){
     // add new
-    addRecordFromInputs(rawAmt, rawNote, rawTags, rawDate);
+    const rec = {
+      id: Date.now() + Math.floor(Math.random()*999),
+      amount: Math.abs(val),
+      type: val > 0 ? 'income' : 'expense',
+      note: rawNote || '(not yok)',
+      tags: rawTags ? rawTags.split(',').map(t=>t.trim()).filter(Boolean) : [],
+      date: rawDate
+    };
+    records.push(rec);
   } else {
     // edit existing
-    const rec = records.find(r => r.id === editingId);
-    if(!rec) { alert("Düzenlenecek kayıt bulunamadı."); editingId = null; closeAdd(); return; }
+    const rec = records.find(r=>r.id === editingId);
+    if(!rec) { alert('Düzenlenecek kayıt bulunamadı'); editingId = null; closeModal(); return; }
     rec.amount = Math.abs(val);
     rec.type = val > 0 ? 'income' : 'expense';
-    rec.note = rawNote.trim() || "(not yok)";
-    rec.tags = parseTagsRaw(rawTags);
+    rec.note = rawNote || '(not yok)';
+    rec.tags = rawTags ? rawTags.split(',').map(t=>t.trim()).filter(Boolean) : [];
     rec.date = rawDate;
-    saveRecords();
-    editingId = null;
-    closeAdd();
-    renderRecords();
   }
+  saveRecords();
+  closeModal();
+  renderRecords();
 });
 
-/* mobile save always add (mobile edit uses prompt) */
-m_save?.addEventListener('click', ()=> {
-  addRecordFromInputs(m_amount.value, m_note.value, m_tags.value, m_date.value);
-});
-
-/* open edit by id */
-function openEdit(id){
-  const rec = records.find(r=>r.id === id);
-  if(!rec) return;
-  editingId = id;
-  modalTitle.textContent = "İşlemi Düzenle";
-  if(window.innerWidth >= 992){
-    addModal.classList.remove("hidden");
-    d_amount.value = (rec.type === 'income' ? rec.amount : -rec.amount);
-    d_note.value = rec.note;
-    d_tags.value = (rec.tags || []).join(", ");
-    d_date.value = rec.date;
-  } else {
-    // mobile prompt flow
-    const newAmt = parseFloat(prompt("Yeni tutar (pozitif gelir, negatif gider):", rec.type==='income'?rec.amount:-rec.amount));
-    if(!isNaN(newAmt) && newAmt !== 0){
-      rec.amount = Math.abs(newAmt);
-      rec.type = newAmt>0 ? 'income' : 'expense';
-    }
-    const newNote = prompt("Yeni not:", rec.note);
-    if(newNote !== null) rec.note = newNote.trim() || "(not yok)";
-    const newTags = prompt("Yeni etiketler (virgülle):", (rec.tags||[]).join(", "));
-    if(newTags !== null) rec.tags = parseTagsRaw(newTags);
-    const newDate = prompt("Yeni tarih (YYYY-AA-GG):", rec.date);
-    if(newDate && /^\d{4}-\d{2}-\d{2}$/.test(newDate)) rec.date = newDate;
-    saveRecords();
-    renderRecords();
-    editingId = null;
-  }
-}
-
-d_close?.addEventListener('click', ()=> {
-  editingId = null;
-  closeAdd();
-});
-
-/* Delete record by id */
+/* delete */
 function deleteRecord(id){
-  if(!confirm("Bu kaydı silmek istiyor musun?")) return;
-  records = records.filter(r => r.id !== id);
+  if(!confirm('Bu kaydı silmek istiyor musun?')) return;
+  records = records.filter(r=> r.id !== id);
   saveRecords();
   renderRecords();
 }
 
-/* ---------------------------
-  Filter buttons behavior
-----------------------------*/
-function setActiveFilter(btn){
-  [filterAll, filterIncome, filterExpense].forEach(b => b.classList.remove('active'));
+/* UI handlers */
+openAddBtn.addEventListener('click', openAdd);
+floatingAdd.addEventListener('click', openAdd);
+d_close.addEventListener('click', closeModal);
+
+/* filter buttons */
+function setActive(btn){
+  [filterAll, filterIncome, filterExpense].forEach(b=> b.classList.remove('active'));
   btn.classList.add('active');
 }
-
-filterAll.addEventListener('click', ()=> { setActiveFilter(filterAll); renderRecords(); });
-filterIncome.addEventListener('click', ()=> { setActiveFilter(filterIncome); renderRecords(); });
-filterExpense.addEventListener('click', ()=> { setActiveFilter(filterExpense); renderRecords(); });
-
-applyFilters.addEventListener('click', ()=> renderRecords());
-resetFilters.addEventListener('click', ()=> {
-  searchNote.value = "";
-  sortDate.value = "";
-  sortAmount.value = "";
-  dateFrom.value = "";
-  dateTo.value = "";
-  amountMin.value = "";
-  amountMax.value = "";
-  const boxes = tagRow.querySelectorAll('input[type="checkbox"]');
-  boxes.forEach(b => b.checked = false);
-  setActiveFilter(filterAll);
-  renderRecords();
-});
+filterAll.addEventListener('click', ()=> { setActive(filterAll); renderRecords(); });
+filterIncome.addEventListener('click', ()=> { setActive(filterIncome); renderRecords(); });
+filterExpense.addEventListener('click', ()=> { setActive(filterExpense); renderRecords(); });
 
 searchNote.addEventListener('keydown', (e)=> { if(e.key === 'Enter') renderRecords(); });
+searchNote.addEventListener('input', ()=> { /* optional: live search */ });
 
-/* theme toggle */
-themeToggle.addEventListener('click', ()=>{
-  document.body.classList.toggle('dark');
-  const isDark = document.body.classList.contains('dark');
-  localStorage.setItem(THEME_KEY, isDark ? 'dark' : 'light');
-  themeToggle.textContent = isDark ? '☀️' : '🌙';
-});
-themeToggle.textContent = document.body.classList.contains('dark') ? '☀️' : '🌙';
+/* keyboard: esc closes modal */
+window.addEventListener('keydown', (e)=> { if(e.key === 'Escape') closeModal(); });
 
-/* init theme from storage */
-if(localStorage.getItem(THEME_KEY) === 'dark') {
-  document.body.classList.add('dark');
-  themeToggle.textContent = '☀️';
-}
-
-/* init chart & UI */
-ensureChart();
-if(records.length === 0) {
-  document.getElementById("filtersRow").classList.add("hidden");
-  tagRow.classList.add("hidden");
-  chartWrap.classList.add("hidden");
-} else {
-  renderTagRow();
-}
+/* initial render */
 renderRecords();
 
-/* expose functions for inline calls */
-window.deleteRecord = deleteRecord;
+/* expose for buttons */
 window.openEdit = openEdit;
-
-/* reactive tag checkbox -> apply */
-tagRow.addEventListener('change', (e) => {
-  if(e.target && e.target.type === 'checkbox') renderRecords();
-});
-
-/* responsive guard */
-window.addEventListener('resize', ()=> {
-  if(window.innerWidth >= 992){
-    addPanelMobile.classList.add('hidden');
-  } else {
-    addModal.classList.add('hidden');
-  }
-});
-
-/* open add button */
-openAddBtn.addEventListener('click', openAdd);
+window.deleteRecord = deleteRecord;
 </script>
 </body>
 </html>
