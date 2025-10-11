@@ -33,6 +33,10 @@
       --accent-1: #8a7bff;
       --accent-2: #00c7ff;
     }
+    /* Prevent horizontal scrolling and set sensible box-sizing + media scaling */
+    html, body { overflow-x: hidden; }
+    *, *::before, *::after { box-sizing: border-box; }
+    img, picture, video, canvas, svg { max-width:100%; height:auto; display:block; }
     body{
       background: var(--bg);
       color: var(--text);
@@ -234,6 +238,32 @@
       .meta-sub { font-size:.9rem; }
     }
 
+    /* ===== Responsive tweaks ===== */
+    @media(max-width:720px){
+      .balance-card {
+        flex-direction: column;
+        align-items: flex-start;
+        padding: 16px;
+        border-radius: 16px;
+      }
+      .balance-left { text-align: left; }
+      .balance-meta { text-align: left; width:100%; margin-top:12px; }
+      .value { font-size: clamp(1.6rem, 8vw, 2.5rem); }
+      .currency { font-size: clamp(1rem, 5vw, 1.2rem); }
+      .filters-row { flex-direction: column; align-items: stretch; gap:10px; }
+      .filter-pill { justify-content: center; flex-wrap: wrap; }
+      input.form-control, select.form-select { min-width: 45%; margin-bottom:6px; }
+      
+      /* Advanced Search Modal */
+      #advancedSearchContent {
+        max-width: 94%;
+        width: 100%;
+        padding: 18px;
+      }
+      #advancedSearchModal { padding: 12px; }
+    }
+
+
   </style>
 </head>
 <body>
@@ -257,6 +287,73 @@
       <div class="glow" aria-hidden="true"></div>
     </div>
   </div>
+
+  <!-- Gelişmiş Arama Butonu (Sağ Üst) -->
+  <button id="advancedSearchBtn" style="
+    position:fixed;
+    top:18px;
+    right:18px;
+    z-index:1002;
+    background:var(--accent-1);
+    color:#fff;
+    border:none;
+    padding:8px 12px;
+    border-radius:8px;
+    cursor:pointer;
+    font-weight:600;
+    box-shadow:0 6px 20px rgba(0,0,0,0.2);
+  ">⚙️ Gelişmiş Arama</button>
+
+  <!-- Gelişmiş Arama Modal -->
+  <div id="advancedSearchModal" style="
+    display:none;
+    position:fixed;
+    inset:0;
+    background:rgba(0,0,0,0.35);
+    backdrop-filter:blur(4px);
+    z-index:1200;
+    align-items:center;
+    justify-content:center;
+    padding:12px;
+  ">
+    <div style="
+      background:var(--card);
+      border-radius:12px;
+      max-width:480px;
+      width:100%;
+      padding:20px;
+      box-shadow:0 12px 40px rgba(0,0,0,0.3);
+      transform:translateY(-30px);
+      opacity:0;
+      transition:0.25s;
+    " id="advancedSearchContent">
+      <h5 style="margin-bottom:18px;">Gelişmiş Arama</h5>
+      
+      <!-- Tutar Aralığı -->
+      <div style="display:flex; gap:8px; margin-bottom:12px;">
+        <input id="adv_minAmount" type="number" placeholder="Min Tutar" class="form-control">
+        <input id="adv_maxAmount" type="number" placeholder="Max Tutar" class="form-control">
+      </div>
+      
+      <!-- Tarih Aralığı -->
+      <div style="display:flex; gap:8px; margin-bottom:12px;">
+        <input id="adv_startDate" type="date" class="form-control">
+        <input id="adv_endDate" type="date" class="form-control">
+      </div>
+      
+      <!-- Etiket Arama -->
+      <div style="margin-bottom:12px;">
+        <input id="adv_tag" type="text" placeholder="Etiket (virgülle)" class="form-control">
+      </div>
+      
+      <!-- Buttons -->
+      <div style="display:flex; justify-content:flex-end; gap:8px;">
+        <button id="adv_apply" class="btn btn-primary">Uygula</button>
+        <button id="adv_close" class="btn btn-outline-secondary">Kapat</button>
+      </div>
+    </div>
+  </div>
+
 
   <!-- Filters row (kept minimal for demo) -->
   <div class="filters-row" id="filtersRow">
@@ -287,17 +384,65 @@
     <div class="modal-box">
       <h5 id="modalTitle">Yeni İşlem</h5>
       <div class="row g-2 mt-2">
-        <div class="col-4"><input id="d_amount" class="form-control" placeholder="Tutar (+/-)"></div>
-        <div class="col-8"><input id="d_note" class="form-control" placeholder="Not"></div>
-        <div class="col-6 mt-2"><input id="d_tags" class="form-control" placeholder="Etiket (virgülle)"></div>
-        <div class="col-4 mt-2"><input id="d_date" type="date" class="form-control"></div>
-        <div class="col-2 mt-2"><button id="d_save" class="btn btn-primary w-100">Kaydet</button></div>
-        <div class="col-12 mt-2 text-end"><button id="d_close" class="btn btn-sm btn-outline-secondary">Kapat</button></div>
+      <div class="col-12">
+        <input id="d_amount" class="form-control" placeholder="Tutar (+/-)">
+      </div>
+      <div class="col-12 mt-2">
+        <input id="d_note" class="form-control" placeholder="Not">
+      </div>
+      <div class="col-12 mt-2">
+        <input id="d_tags" class="form-control" placeholder="Etiket (virgülle)">
+      </div>
+      <div class="col-6 mt-2">
+        <input id="d_date" type="date" class="form-control">
+      </div>
+      <div class="col-6 mt-2">
+        <button id="d_save" class="btn btn-primary w-100">Kaydet</button>
+      </div>
+      <div class="col-12 mt-2 text-end">
+        <button id="d_close" class="btn btn-sm btn-outline-secondary">Kapat</button>
+      </div>
       </div>
     </div>
   </div>
 
-<script>
+
+<!-- Firebase -->
+<script type="module">
+
+  
+  // Import the functions you need from the SDKs you need
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js";
+  import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-analytics.js";
+  import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-database.js";
+  // TODO: Add SDKs for Firebase products that you want to use
+  // https://firebase.google.com/docs/web/setup#available-libraries
+
+  // Your web app's Firebase configuration
+  // For Firebase JS SDK v7.20.0 and later, measurementId is optional
+  const firebaseConfig = {
+    apiKey: "AIzaSyABNm4D3GUmdGyCGfTcMe5FyzkqjPeXeBU",
+    authDomain: "hesapkitapsync.firebaseapp.com",
+    databaseURL: "https://hesapkitapsync-default-rtdb.europe-west1.firebasedatabase.app/",
+    projectId: "hesapkitapsync",
+    storageBucket: "hesapkitapsync.firebasestorage.app",
+    messagingSenderId: "1048429648839",
+    appId: "1:1048429648839:web:1b6a9a0eefe7490cff57e2",
+    measurementId: "G-6Y4PR5CB2M"
+  };
+
+  // Initialize Firebase
+  const app = initializeApp(firebaseConfig);
+  const analytics = getAnalytics(app);
+  const db = getDatabase(app);
+  const recordsRef = ref(db, 'records');
+
+  onValue(recordsRef, snapshot => {
+    const val = snapshot.val() || [];
+    records = val;       // güncel veriyi al
+    renderRecords();     // ekrana yansıt
+  });
+  
 /* ---------------------------
   FULL APP (single-file)
 ----------------------------*/
@@ -340,7 +485,7 @@ let chart = null;
 if(localStorage.getItem(THEME_KEY) === 'dark') document.body.classList.add('dark');
 
 /* Utility: save & format */
-function saveRecords(){ localStorage.setItem(STORAGE_KEY, JSON.stringify(records)); }
+function saveRecords(){ set(recordsRef, records); }
 function formatTLNumber(n){
   // keep two decimals and thousands separators
   return Number(n).toLocaleString('tr-TR', {minimumFractionDigits:2, maximumFractionDigits:2});
@@ -565,6 +710,66 @@ renderRecords();
 /* expose for buttons */
 window.openEdit = openEdit;
 window.deleteRecord = deleteRecord;
+
+// Modal aç/kapa
+const advBtn = document.getElementById('advancedSearchBtn');
+const advModal = document.getElementById('advancedSearchModal');
+const advContent = document.getElementById('advancedSearchContent');
+const advClose = document.getElementById('adv_close');
+const advApply = document.getElementById('adv_apply');
+
+function openAdvModal() {
+  advModal.style.display = 'flex';
+  requestAnimationFrame(()=> {
+    advContent.style.transform = 'translateY(0)';
+    advContent.style.opacity = '1';
+  });
+}
+
+function closeAdvModal() {
+  advContent.style.transform = 'translateY(-30px)';
+  advContent.style.opacity = '0';
+  setTimeout(()=> advModal.style.display = 'none', 250);
+}
+
+advBtn.addEventListener('click', openAdvModal);
+advClose.addEventListener('click', closeAdvModal);
+advModal.addEventListener('click', e => { if(e.target === advModal) closeAdvModal(); });
+
+// Gelişmiş Arama Uygula
+advApply.addEventListener('click', ()=>{
+  const minAmt = parseFloat(document.getElementById('adv_minAmount').value);
+  const maxAmt = parseFloat(document.getElementById('adv_maxAmount').value);
+  const startDate = document.getElementById('adv_startDate').value;
+  const endDate = document.getElementById('adv_endDate').value;
+  const tagQuery = (document.getElementById('adv_tag').value || '').toLowerCase().split(',').map(t=>t.trim()).filter(Boolean);
+
+  const filtered = records.filter(r=>{
+    // Amount filter
+    if(!isNaN(minAmt) && r.amount < minAmt) return false;
+    if(!isNaN(maxAmt) && r.amount > maxAmt) return false;
+
+    // Date filter
+    if(startDate && r.date < startDate) return false;
+    if(endDate && r.date > endDate) return false;
+
+    // Tag filter
+    if(tagQuery.length && (!r.tags || !tagQuery.every(tq => r.tags.map(tt=>tt.toLowerCase()).includes(tq)))) return false;
+
+    return true;
+  });
+
+  // Show filtered
+  recordsEl.innerHTML = '';
+  const prevRecords = records;
+  records = filtered;
+  renderRecords();
+  records = prevRecords;
+
+  closeAdvModal();
+});
 </script>
+
+
 </body>
 </html>
