@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>💸 Para Takip</title>
+  <title>Para Takip</title>
 
   <!-- Bootstrap -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -14,8 +14,11 @@
   <!-- Chart.js -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-  <!-- Favicon (tiny SVG data URL) -->
-  <link rel="icon" href='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 64 64%22><text y=%2250%%22 font-size=%2250%22>💸</text></svg>'>
+  <!-- Font Awesome -->
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+
+  <!-- Favicon (simple PT initials) -->
+  <link rel="icon" href='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 64 64%22><rect width=%2264%22 height=%2264%22 rx=%2210%22 fill=%22%236c63ff%22></rect><text x=%2232%22 y=%2238%22 font-size=%2228%22 text-anchor=%22middle%22 fill=%22white%22 font-family=%22Arial%22>PT</text></svg>'>
 
   <style>
     :root{
@@ -39,7 +42,7 @@
       --muted:#9a9a9a;
       --accent-1: #8a7bff;
       --accent-2: #00c7ff;
-      --border: rgba(255,255,255,0.06);
+      --border: rgb(255 255 255 / 14%);
     }
     /* Prevent horizontal scrolling and box-sizing */
     html, body { overflow-x: hidden; }
@@ -78,6 +81,42 @@
     }
     .right-controls { display:flex; gap:8px; align-items:center; }
 
+    /* Theme & Advanced button styling (light / dark variants) */
+    #themeToggle, #advancedSearchBtn {
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      padding:6px 10px;
+      border-radius:8px;
+      font-weight:600;
+      color: var(--text);
+      background: transparent;
+      border: 1px solid var(--border);
+      transition: background .18s ease, color .18s ease, transform .12s ease, box-shadow .18s ease;
+      box-shadow: none;
+      cursor: pointer;
+    }
+
+    /* light mode (default) */
+    #themeToggle { background: rgba(0,0,0,0.02); }
+    #advancedSearchBtn { background: rgba(255,255,255,0.02); }
+
+    #themeToggle:hover, #advancedSearchBtn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 30px rgba(16,24,40,0.06);
+    }
+
+    /* dark mode variants */
+    body.dark #themeToggle, body.dark #advancedSearchBtn {
+      background: rgba(255,255,255,0.03);
+      border-color: rgba(255,255,255,0.06);
+      box-shadow: 0 8px 30px rgba(0,0,0,0.28);
+      color: var(--text);
+    }
+
+    /* subtle pressed state */
+    #themeToggle:active, #advancedSearchBtn:active { transform: translateY(0); box-shadow:none; }
+
     /* ===== Fancy Balance Card ===== */
     .balance-wrap {
       max-width:980px;
@@ -108,7 +147,7 @@
       box-shadow: 0 18px 60px rgba(120,95,255,0.12);
     }
 
-    .balance-left { display:flex; flex-direction:column; gap:6px; }
+    .balance-left { display:flex; flex-direction:column; gap:6px;}
     .balance-title { font-family: 'Poppins'; font-weight:300; font-size:.95rem; opacity:.95; color:rgba(255,255,255,0.95); }
     .balance-amount { display:flex; align-items:baseline; gap:8px; }
     .currency { font-family: 'Montserrat'; font-weight:600; font-size: clamp(1.15rem, 2.6vw, 1.4rem); background: linear-gradient(90deg, rgba(255,255,255,0.95), rgba(255,255,255,0.8)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
@@ -169,6 +208,167 @@
     input::placeholder { color: rgba(0,0,0,0.35); }
     body.dark input::placeholder { color: rgba(255,255,255,0.35); }
 
+    /* Global button styles to match theme (applies to Bootstrap .btn also) */
+    .btn, .btn-sm {
+      border-radius: 10px;
+      padding: 8px 12px;
+      font-weight:600;
+      min-height: 36px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap:8px;
+      transition: background .16s ease, transform .12s ease, box-shadow .12s ease;
+      border: 1px solid var(--border) !important;
+      background: transparent;
+      color: var(--text) !important;
+    }
+
+    /* Primary / success / danger helpers (preserve bootstrap intent but adapt to theme) */
+    .btn-primary {
+      background: linear-gradient(90deg, var(--accent-1), var(--accent-2));
+      color: #fff !important;
+      border-color: transparent !important;
+      box-shadow: 0 10px 30px rgba(80,60,180,0.08);
+    }
+    .btn-success { background: rgba(0,200,120,0.12); color: var(--text) !important; }
+    .btn-danger, .btn-outline-danger { background: rgba(255,80,80,0.06); color: var(--text) !important; }
+
+    /* Outline variants (subtle) */
+    .btn-outline-secondary, .btn-outline-primary, .btn-outline-success {
+      background: transparent;
+      border: 1px solid var(--border) !important;
+
+    }
+
+    body.dark .btn-outline-secondary{
+      --bs-btn-hover-bg: #272727;
+      --bs-btn-active-bg: #343434;
+    }
+
+    .btn-outline-secondary{
+      --bs-btn-hover-bg: #ececec;
+      --bs-btn-active-bg: #cecece;
+    }
+
+
+    .btn:active, .btn:focus {
+      transform: translateY(0);
+      box-shadow: 0 6px 18px rgba(16,24,40,0.06);
+      outline: none !important;
+    }
+
+    /* Make inputs and selects touch friendly and consistent */
+    input.form-control, select.form-select, textarea {
+      padding: 10px 12px !important;
+      border-radius: 10px !important;
+      min-height:38px;
+      font-size:0.95rem;
+    }
+
+    /* Full-width helper for small screens */
+    .w-mobile-full { width: auto; }
+
+    /* Mobile-specific improvements (compact and touch-friendly) */
+    @media(max-width:720px){
+      body { padding: 12px 10px 90px; }
+      .topbar { padding:6px 6px; gap:8px; }
+      .site-title { font-size:0.98rem; }
+      .site-title .logo { width:40px; height:40px; }
+      .right-controls { gap:6px; }
+      .user-badge { padding:6px; }
+
+      /* Filters row stack and make actions full-width */
+      .filters-row { padding:6px; }
+      .filter-left { width:100%; display: grid;}
+      .filter-pill { width:100%; display:flex; justify-content:space-between; }
+      .filter-pill input.form-control { min-width:0; flex:1; }
+
+      /* Make action buttons easier to tap and full width in their group */
+      #openAdd, #advancedSearchBtn, #filterAll, #filterIncome, #filterExpense {
+        min-width: 44px; padding:10px 12px; font-size:0.95rem;
+      }
+
+      /* Cards stretch and have larger padding */
+      .container-cards{ padding: 6px; }
+      .record-card { padding:12px; flex-direction:column; align-items:stretch; gap:8px; }
+      .record-card > div:last-child { text-align:left; }
+      .record-card .btn { width: 48%; }
+
+      /* Floating add button slightly smaller and not cover content */
+      .floating-btn { right: 14px; bottom: 18px; width:52px; height:52px; }
+
+      /* Modal adjustments: full width and comfortable padding */
+      .modal-box { width: 94%; padding:14px; }
+      #advancedSearchContent { opacity:1 !important; margin: 12px auto; }
+
+      /* Chart area scaling */
+      #chartWrap { padding: 0 6px; }
+
+      /* Make shared message area comfortable */
+      #sharedMessageDisplay { font-size:0.95rem; }
+    }
+
+    /* Additional small-screen tweaks to avoid cramped header/filter */
+    @media(max-width:720px){
+      /* hide the full user badge in topbar (account accessible via bottom nav) */
+      .topbar .user-badge { display: none !important; }
+
+      /* hide redundant action buttons in filters since bottom nav covers them */
+      #advancedSearchBtn, #openAdd { display: none !important; }
+
+      /* hide small chart preview to save horizontal space */
+      #chartPreview { display: none !important; }
+
+      /* ensure search input fills remaining row space */
+      .filter-pill { width: 100%; }
+      .filter-pill input.form-control { width: 100%; min-width: 0; }
+
+      /* hide migrate/clear local buttons on very small screens (avoid crowding) */
+      #migrateLocalBtn, #clearLocalBtn { display: none !important; }
+    }
+
+    /* Mobile bottom nav styles */
+    #mobileBottomNav { position: fixed; left: 0; right: 0; bottom: 0; z-index:1100; display:none; }
+    .mobile-nav-inner { max-width:980px; margin: 0 auto; display:flex; justify-content:space-between; gap:6px; padding:8px; background: var(--card); border-top:1px solid var(--border); box-shadow: 0 -6px 30px rgba(0,0,0,0.06); }
+    .mobile-nav-btn { flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:4px; padding:6px 6px; border-radius:10px; background:transparent; border:none; color:var(--text); font-size:0.85rem; }
+    .mobile-nav-btn.primary { background: linear-gradient(90deg,var(--accent-1),var(--accent-2)); color:#fff; box-shadow: 0 8px 26px rgba(80,60,180,0.12); }
+    .mobile-nav-btn .label { font-size:0.72rem; opacity:0.9; }
+    .mobile-nav-btn i { font-size:1.05rem; }
+
+    @media(max-width:720px){
+      #mobileBottomNav { display:block; }
+      /* add bottom padding to body so content isn't covered */
+      body { padding-bottom: 84px; }
+      /* hide floating add on very small screens since nav has add */
+      .floating-btn { display:none; }
+    }
+
+    /* Account popup styles */
+    .account-popup { position: absolute; right: 10px; top: 62px; width: 260px; z-index:1300; /* visibility/animation controlled by .open */
+      display:block; opacity:0; visibility:hidden; pointer-events:none; transform: translateY(-6px); transition: transform .26s cubic-bezier(.2,.9,.18,1), opacity .22s ease, visibility .18s; }
+    .account-popup.open { opacity:1; visibility:visible; pointer-events:auto; transform: translateY(0); }
+    .account-popup-inner { background: var(--card); border:1px solid var(--border); border-radius:12px; padding:10px; box-shadow: 0 12px 40px rgba(0,0,0,0.12); }
+    .ap-header { display:flex; gap:8px; align-items:center; padding-bottom:8px; border-bottom:1px solid rgba(0,0,0,0.03); }
+    .ap-avatar { width:44px; height:44px; border-radius:999px; display:flex; align-items:center; justify-content:center; background:rgba(0,0,0,0.06); }
+    .ap-info { display:flex; flex-direction:column; }
+    .ap-info #apName { font-weight:700; }
+    .ap-actions { display:flex; flex-direction:column; gap:8px; margin-top:10px; }
+
+    /* Mobile position: anchored above bottom nav and fixed to viewport so it moves with scroll
+       Use a slide-up animation on open (starts slightly below and moves up). */
+    @media(max-width:720px){
+      .account-popup { position: fixed; left: 12px; right: 12px; top: auto; bottom: 84px; width: auto; transform: translateY(12px); }
+      .account-popup.open { transform: translateY(0); }
+    }
+    @media(min-width:720px){
+      #mobileBottomNav { display:none; }
+      /* add bottom padding to body so content isn't covered */
+      body { padding-bottom: 84px; }
+      /* hide floating add on very small screens since nav has add */
+      .floating-btn { display:none; }
+    }
+
     /* cards */
     .container-cards{ max-width:980px; margin: 18px auto 120px; }
     .record-card{
@@ -200,15 +400,61 @@
 
     /* responsive tweaks */
     @media(max-width:720px){
+      .balance-left { align-items: center; align-self: center;}
+      .balance-meta { text-align:left; min-width:160px; color: rgba(255,255,255,0.95); }
       .value { font-size: clamp(1.6rem, 10vw, 2.6rem); }
       .balance-card { padding: 14px; border-radius:14px; flex-direction:column; align-items:flex-start; gap:12px; }
       .meta-sub { font-size:.9rem; }
       .filters-row { flex-direction:column; align-items:stretch; gap:10px; }
-      .filter-left { width:100%; justify-content:space-between; }
       .filter-pill { flex:1; justify-content:center; }
       .floating-btn { right:14px; bottom:14px; width:52px; height:52px; }
       .balance-percent { position:static; margin-bottom:8px; }
+      /* Mobile: record card layout tweak - left column: note (top) + date/tags (bottom); right column: amount + actions */
+      .record-card{
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 12px;
+      }
+      .record-card > div:first-child{
+        /* left column: take remaining space, stack note and meta */
+        flex: 1 1 auto;
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+      }
+      .record-card > div:first-child .small {
+        font-size: 0.92rem;
+        color: var(--muted);
+      }
+      .record-card > div:last-child{
+        /* right column: amount and actions, align to right */
+        display: flex;
+        flex-direction: column;
+        align-items: flex-end;
+        gap: 8px;
+        min-width: 110px;
+      }
+      .record-card .btn {
+        padding: 6px 8px;
+        font-size: 0.88rem;
+        min-height: 34px;
+      }
+      .record-card .tag-chip { margin-left:6px; font-size:0.8rem; }
     }
+
+    .mt-2{
+        display: flex;
+        width: 100%;
+        justify-content: flex-end;
+    }
+  /* Analysis area controls */
+  .analysis-area { background: var(--card); border:1px solid var(--border); border-radius:12px; padding:12px; box-shadow: 0 8px 30px rgba(0,0,0,0.04); margin-bottom:12px; }
+  .analysis-range { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:8px; }
+  .analysis-range .btn { padding:6px 10px; font-size:0.88rem; }
   </style>
 </head>
 <body>
@@ -216,7 +462,7 @@
   <!-- TOP BAR -->
   <div class="topbar">
     <div class="site-title">
-      <div class="logo" aria-hidden>💸</div>
+    <div class="logo" aria-hidden><i class="fas fa-wallet" style="font-size:1.1rem"></i></div>
       <div>
         <div style="font-size:.9rem; opacity:.75">Para Takip</div>
         <div style="font-size:.78rem; color:var(--muted)">Hesap ve gider takibi</div>
@@ -224,21 +470,36 @@
     </div>
 
     <div class="right-controls">
-      <!-- Advanced search moved into topbar as requested -->
-      <button id="advancedSearchBtnTop" class="btn btn-sm" style="background:transparent; border:1px solid var(--border);">
-        ⚙️ Gelişmiş
-      </button>
-
       <!-- Theme toggle -->
-      <button id="themeToggle" class="btn btn-sm" title="Tema değiştir" style="border:1px solid var(--border);">🌓</button>
+      <button id="themeToggle" class="btn btn-sm btn-outline-secondary" title="Tema değiştir" style="border:1px solid var(--border);"><i class="fa-solid fa-circle-half-stroke"></i></button>
 
       <!-- User (login) -->
       <div id="authArea" class="user-badge">
-        <div id="userAvatar" class="user-avatar">👤</div>
+        <div id="userAvatar" class="user-avatar"><i class="fas fa-user" style="font-size:1rem"></i></div>
         <div id="userInfo" style="font-size:.85rem">Giriş yok</div>
         <button id="authBtn" class="btn btn-sm btn-outline-primary" style="margin-left:8px">Giriş</button>
         <button id="migrateLocalBtn" class="btn btn-sm btn-outline-success" style="margin-left:8px; display:none">Yerel Veriyi Taşı</button>
         <button id="clearLocalBtn" class="btn btn-sm btn-outline-danger" style="margin-left:8px; display:none">Yereli Sil</button>
+      </div>
+
+      <!-- Account popup (desktop and mobile anchored) -->
+        <div id="accountPopup" class="account-popup" aria-hidden="true">
+        <div class="account-popup-inner">
+          <div class="ap-header">
+            <div class="ap-avatar" id="apAvatar"><i class="fas fa-user"></i></div>
+            <div class="ap-info">
+              <div id="apName">Giriş yok</div>
+              <div id="apStatus" class="muted" style="font-size:.85rem">Henüz giriş yapılmadı</div>
+            </div>
+          </div>
+              <div class="ap-actions">
+                <button id="apSignIn" class="btn btn-sm btn-outline-primary" style="display:none">Giriş Yap</button>
+                <button id="apMigrate" class="btn btn-sm btn-outline-success">Yereli Taşı</button>
+                <button id="apClear" class="btn btn-sm btn-outline-danger">Yereli Sil</button>
+                <button id="apExport" class="btn btn-sm btn-outline-secondary">Veriyi Dışa Aktar</button>
+                <button id="apSignOut" class="btn btn-sm btn-outline-primary">Çıkış Yap</button>
+              </div>
+        </div>
       </div>
     </div>
   </div>
@@ -274,7 +535,7 @@
         <button id="filterExpense" class="btn btn-sm btn-outline-secondary ms-1">Gider</button>
       </div>
       <div class="filter-pill" style="display:flex; align-items:center;">
-        <input id="searchNote" class="form-control form-control-sm" placeholder="Notlarda ara..." style="min-width:180px;">
+        <input id="searchNote" class="form-control form-control-sm" placeholder="Ara...">
       </div>
     </div>
 
@@ -282,7 +543,10 @@
       <!-- Chart small preview -->
       <div id="chartPreview" style="width:120px; height:64px;"></div>
       <!-- Advanced button opens full modal too -->
-      <button id="advancedSearchBtn" class="btn btn-sm btn-primary">Gelişmiş Seçenekler</button>
+       <!-- Advanced search moved into topbar as requested -->
+      <button id="advancedSearchBtn" class="btn btn-sm btn-outline-secondary" style="background:transparent; border:1px solid var(--border);">
+        <i class="fa-solid fa-magnifying-glass-dollar"></i> Gelişmiş
+      </button>
       <!-- New entry + floating remains -->
       <button id="openAdd" class="btn btn-sm btn-success">+ Yeni</button>
     </div>
@@ -296,6 +560,17 @@
 
   <!-- Floating add -->
   <button class="floating-btn" id="floatingAdd">+</button>
+
+  <!-- Mobile bottom navigation (visible on small screens) -->
+  <nav id="mobileBottomNav" aria-label="Mobil menü">
+    <div class="mobile-nav-inner">
+      <button id="navHome" class="mobile-nav-btn"><i class="fas fa-wallet"></i><div class="label">Bakiye</div></button>
+      <button id="navSearch" class="mobile-nav-btn"><i class="fa-solid fa-magnifying-glass-dollar"></i><div class="label">Ara</div></button>
+      <button id="navAdd" class="mobile-nav-btn primary"><i class="fas fa-plus"></i><div class="label">Yeni</div></button>
+  <button id="navShared" class="mobile-nav-btn"><i class="fas fa-chart-pie"></i><div class="label">Analiz</div></button>
+      <button id="navAccount" class="mobile-nav-btn"><i class="fas fa-user"></i><div class="label">Hesap</div></button>
+    </div>
+  </nav>
 
   <!-- Modal (add/edit) -->
   <div id="modalOverlay" class="modal-overlay" style="display:none;">
@@ -314,7 +589,7 @@
 
   <!-- Advanced Search Modal -->
   <div id="advancedSearchModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.35); z-index:1200; align-items:center; justify-content:center; padding:12px;">
-    <div style="background:var(--card); border-radius:12px; max-width:520px; width:100%; padding:20px; box-shadow:0 12px 40px rgba(0,0,0,0.3); transform:translateY(-20px); opacity:0; transition:0.22s;" id="advancedSearchContent">
+    <div id="advancedSearchContent" style="background:var(--card); border-radius:12px; max-width:520px; width:100%; padding:20px; box-shadow:0 12px 40px rgba(0,0,0,0.3); transform:translateY(-20px); opacity:0; transition:0.22s;">
       <h5 style="margin-bottom:12px;">Gelişmiş Arama</h5>
 
       <!-- Tutar Aralığı -->
@@ -340,13 +615,7 @@
     </div>
   </div>
 
-  <!-- Firebase message area (debug / sync) -->
-  <div style="max-width:480px;margin:12px auto;padding:12px;background:var(--card);border-radius:8px;border:1px solid var(--border);">
-    <h6 style="margin-bottom:8px">Paylaşılan Mesaj (senkronize)</h6>
-    <div id="sharedMessageDisplay" style="padding:8px;background:#eee;border-radius:6px;min-height:30px;"></div>
-    <input id="sharedMessageInput" class="form-control mt-2" placeholder="Mesajı değiştir...">
-    <button class="btn btn-primary mt-2 w-100" id="sendSharedBtn">Gönder</button>
-  </div>
+  <!-- (removed) shared message debug area; replaced by chart area focus target -->
 
 <script type="module">
 
@@ -431,15 +700,7 @@
   };
   
 
-  // shared message send/receive
-  document.getElementById('sendSharedBtn').addEventListener('click', () => {
-    const txt = document.getElementById('sharedMessageInput').value || '';
-    set(sharedMsgRef, txt).catch(e=>console.error(e));
-  });
-  onValue(sharedMsgRef, snap => {
-    const t = snap.val() || '';
-    document.getElementById('sharedMessageDisplay').textContent = t;
-  });
+  // shared message area removed; no-op
 
   // AUTH: simple modalless flow: sign in with Google or email prompt (simple)
   const provider = new GoogleAuthProvider();
@@ -485,9 +746,17 @@
       try{ attachRecordsListenerForUser(user.uid); } catch(e){ console.error('[auth] attach error', e); }
       // show migrate/clear buttons
       try { document.getElementById('migrateLocalBtn').style.display = 'inline-block'; document.getElementById('clearLocalBtn').style.display = 'inline-block'; } catch(e){}
+      // update account popup UI
+      try{
+        if(apName) apName.textContent = user.displayName || user.email || 'Kullanıcı';
+        if(apStatus) apStatus.textContent = 'Hesabınıza giriş yapıldı';
+        if(apAvatar) apAvatar.innerHTML = user.photoURL ? `<img src="${user.photoURL}" style="width:100%;height:100%;object-fit:cover">` : '<i class="fas fa-user"></i>';
+      }catch(e){console.error(e);}
+      // show/hide action buttons consistently
+      try{ setAccountPopupButtons(true); }catch(e){console.error(e);}
     } else {
       document.getElementById('userInfo').textContent = 'Giriş yok';
-      document.getElementById('userAvatar').textContent = '👤';
+  document.getElementById('userAvatar').innerHTML = '<i class="fas fa-user" style="font-size:1rem"></i>';
       document.getElementById('authBtn').textContent = 'Giriş';
       // detach listener and load local fallback
       console.log('[auth] user signed out, detaching DB listener and loading localStorage fallback');
@@ -500,6 +769,14 @@
       } catch(e){ records = []; window.records = records; renderRecords(); }
       // hide migrate/clear buttons when signed out
       try { document.getElementById('migrateLocalBtn').style.display = 'none'; document.getElementById('clearLocalBtn').style.display = 'none'; } catch(e){}
+      // update account popup UI for signed-out state
+      try{
+        if(apName) apName.textContent = 'Giriş yok';
+        if(apStatus) apStatus.textContent = 'Henüz giriş yapılmadı';
+        if(apAvatar) apAvatar.innerHTML = '<i class="fas fa-user"></i>';
+      }catch(e){console.error(e);}
+      // show/hide action buttons consistently
+      try{ setAccountPopupButtons(false); }catch(e){console.error(e);}
     }
   });
 
@@ -569,7 +846,6 @@ const searchNote = document.getElementById('searchNote');
 const chartWrap = document.getElementById('chartWrap');
 const chartPreview = document.getElementById('chartPreview');
 
-const advBtnTop = document.getElementById('advancedSearchBtnTop');
 const advBtn = document.getElementById('advancedSearchBtn');
 const advModal = document.getElementById('advancedSearchModal');
 const advContent = document.getElementById('advancedSearchContent');
@@ -579,9 +855,117 @@ const advApply = document.getElementById('adv_apply');
 const authBtn = document.getElementById('authBtn');
 const userInfo = document.getElementById('userInfo');
 const userAvatar = document.getElementById('userAvatar');
-const sendSharedBtn = document.getElementById('sendSharedBtn');
-const sharedMessageDisplay = document.getElementById('sharedMessageDisplay');
-const sharedMessageInput = document.getElementById('sharedMessageInput');
+
+/* Mobile bottom nav wiring (exists only on small screens) */
+const navHome = document.getElementById('navHome');
+const navSearch = document.getElementById('navSearch');
+const navAdd = document.getElementById('navAdd');
+const navShared = document.getElementById('navShared');
+const navAccount = document.getElementById('navAccount');
+
+if(navAdd) navAdd.addEventListener('click', (e)=> { e.preventDefault(); openAdd(); });
+if(navSearch) navSearch.addEventListener('click', (e)=> { e.preventDefault(); openAdvModal(); });
+// navAccount should only open the account popup (no sign-in/out)
+if(navAccount) navAccount.addEventListener('click', (e)=> { e.preventDefault(); toggleAccountPopup(); });
+if(navHome) navHome.addEventListener('click', (e)=> { e.preventDefault(); window.scrollTo({ top: 0, behavior: 'smooth' }); });
+// navShared now focuses the analysis chart (summaryChart)
+if(navShared) navShared.addEventListener('click', (e)=> { e.preventDefault();
+  const chartCanvas = document.getElementById('summaryChart');
+  if(chartCanvas){
+    chartCanvas.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    setTimeout(()=> { try{ chartCanvas.focus(); } catch(e){} }, 380);
+  } else {
+    updateChartsForView();
+    setTimeout(()=> { const c = document.getElementById('summaryChart'); if(c){ c.scrollIntoView({ behavior:'smooth', block:'center' }); try{ c.focus(); } catch(e){} } }, 420);
+  }
+});
+
+/* Account popup wiring (toggle + actions) */
+const accountPopup = document.getElementById('accountPopup');
+const apMigrate = document.getElementById('apMigrate');
+const apClear = document.getElementById('apClear');
+const apExport = document.getElementById('apExport');
+const apSignOut = document.getElementById('apSignOut');
+const apName = document.getElementById('apName');
+const apStatus = document.getElementById('apStatus');
+const apAvatar = document.getElementById('apAvatar');
+
+function toggleAccountPopup(show){
+  if(!accountPopup) return;
+  const willOpen = (typeof show === 'boolean') ? show : !accountPopup.classList.contains('open');
+  if(willOpen){
+    accountPopup.classList.add('open');
+    accountPopup.setAttribute('aria-hidden','false');
+  } else {
+    accountPopup.classList.remove('open');
+    accountPopup.setAttribute('aria-hidden','true');
+  }
+}
+
+if(userAvatar) userAvatar.addEventListener('click', ()=> toggleAccountPopup());
+// navAccount is already wired above to open the popup without triggering auth
+
+if(apMigrate) apMigrate.addEventListener('click', ()=> { const b=document.getElementById('migrateLocalBtn'); if(b) b.click(); toggleAccountPopup(false); });
+if(apClear) apClear.addEventListener('click', ()=> { const b=document.getElementById('clearLocalBtn'); if(b) b.click(); toggleAccountPopup(false); });
+if(apExport) apExport.addEventListener('click', ()=> {
+  try{
+    const data = JSON.stringify(records || [], null, 2);
+    const blob = new Blob([data], {type:'application/json'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a'); a.href = url; a.download = 'para_takip_records.json'; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
+  }catch(e){ console.error('export error', e); alert('Dışa aktarma başarısız'); }
+  toggleAccountPopup(false);
+});
+if(apSignOut) apSignOut.addEventListener('click', ()=> { toggleAccountPopup(false); const b=document.getElementById('authBtn'); if(b) b.click(); });
+const apSignIn = document.getElementById('apSignIn');
+if(apSignIn) apSignIn.addEventListener('click', ()=> { toggleAccountPopup(false); const b=document.getElementById('authBtn'); if(b) b.click(); });
+
+// initialize popup button visibility immediately based on current auth state
+try{
+  // ensure popup closed initially
+  accountPopup.classList.remove('open');
+  accountPopup.setAttribute('aria-hidden','true');
+  // apply correct button visibility
+  if(typeof setAccountPopupButtons === 'function') setAccountPopupButtons(!!(auth && auth.currentUser));
+}catch(e){/* ignore */}
+
+// Helper: show only the appropriate actions in the account popup depending on sign-in state
+function setAccountPopupButtons(signedIn){
+  // signedIn === true  => hide apSignIn, show apSignOut + migrate/clear/export
+  // signedIn === false => show only apSignIn (hide others)
+  try{
+    if(signedIn){
+      if(apSignIn) apSignIn.style.display = 'none';
+      if(apSignOut) apSignOut.style.display = 'inline-flex';
+      if(apMigrate) apMigrate.style.display = 'inline-flex';
+      if(apClear) apClear.style.display = 'inline-flex';
+      if(apExport) apExport.style.display = 'inline-flex';
+    } else {
+      if(apSignIn) apSignIn.style.display = 'inline-flex';
+      if(apSignOut) apSignOut.style.display = 'none';
+      if(apMigrate) apMigrate.style.display = 'none';
+      if(apClear) apClear.style.display = 'none';
+      if(apExport) apExport.style.display = 'none';
+    }
+  }catch(e){ console.error('[setAccountPopupButtons]', e); }
+}
+
+// Close popup when clicking outside (but ignore clicks on avatar and the mobile account nav button)
+document.addEventListener('click', (ev) => {
+  try{
+    const open = accountPopup && accountPopup.classList.contains('open');
+    if(!open) return;
+    const path = ev.composedPath ? ev.composedPath() : (ev.path || []);
+    if(path && path.indexOf(accountPopup) > -1) return; // click inside popup
+    if(path && path.indexOf(userAvatar) > -1) return; // click on avatar toggles explicitly
+    // also ignore clicks on the bottom-nav account button so it can open the popup
+    if(typeof navAccount !== 'undefined' && navAccount && path && path.indexOf(navAccount) > -1) return;
+    // otherwise close
+    toggleAccountPopup(false);
+  }catch(e){/* ignore */}
+});
+
+
 
 /* Chart instances */
 let mainChart = null;
@@ -680,7 +1064,9 @@ function getFilteredRecords(){
 }
 
 /* Update charts from current filtered view (so search updates chart) */
-function updateChartsForView(){
+function updateChartsForView(range){
+  // range: 'weekly'|'monthly'|'yearly'|'all' (optional, defaults to 'all')
+  range = range || 'all';
   const view = getFilteredRecords();
   const income = view.filter(r=>r.type==='income').reduce((s,r)=>s+r.amount,0);
   const expense = view.filter(r=>r.type==='expense').reduce((s,r)=>s+r.amount,0);
@@ -690,10 +1076,9 @@ function updateChartsForView(){
   // percent badge text
   percentBadge.textContent = `${percent}% gelir`;
 
-  // small preview chart
+  // small preview chart (doughnut)
   if(previewChart) previewChart.destroy();
   previewChart = new Chart(chartPreview.getContext ? chartPreview.getContext('2d') : (function(){ 
-    // create canvas inside preview if needed
     chartPreview.innerHTML = '<canvas id="miniChart"></canvas>'; 
     return document.getElementById('miniChart').getContext('2d');
   })(), {
@@ -702,21 +1087,126 @@ function updateChartsForView(){
     options:{plugins:{legend:{display:false}}, maintainAspectRatio:false}
   });
 
-  // main chart (bigger)
+  // summary doughnut + analysis line chart container
   if(mainChart) mainChart.destroy();
-  chartWrap.innerHTML = '<canvas id="summaryChart" height="160"></canvas>';
+  chartWrap.innerHTML = `
+    <div class="analysis-area">
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap">
+        <strong>Analiz: Bakiye Zaman Serisi</strong>
+        <div class="analysis-range" role="tablist" aria-label="Zaman aralığı">
+            <button class="btn btn-sm btn-outline-secondary" data-range="weekly">1 Hafta</button>
+            <button class="btn btn-sm btn-outline-secondary" data-range="monthly">1 Ay</button>
+            <button class="btn btn-sm btn-outline-secondary" data-range="yearly">1 Yıl</button>
+            <button class="btn btn-sm btn-outline-secondary" data-range="all">Tüm Zaman</button>
+        </div>
+      </div>
+      <div style="margin-top:8px"><canvas id="analysisChart" height="140" tabindex="0" aria-label="Bakiye zaman serisi grafiği"></canvas></div>
+    </div>
+    <div style="margin-top:10px"><canvas id="summaryChart" height="160" tabindex="0" aria-label="Gelir gider özeti"></canvas></div>
+  `;
+
+  // wire range buttons
+  const rangeBtns = chartWrap.querySelectorAll('.analysis-range .btn');
+  rangeBtns.forEach(b => {
+    b.classList.toggle('active', b.getAttribute('data-range') === range);
+    b.addEventListener('click', ()=> { updateChartsForView(b.getAttribute('data-range')); });
+  });
+
+  // build time-series (cumulative balance) depending on range
+  const series = buildBalanceSeries(view, range);
+
+  // analysis line chart
+  const aCtx = document.getElementById('analysisChart').getContext('2d');
+  mainChart = new Chart(aCtx, {
+    type: 'line',
+    data: {
+      labels: series.labels,
+      datasets: [{
+        label: 'Bakiye',
+        data: series.values,
+        borderColor: 'rgba(108,99,255,0.95)',
+        backgroundColor: 'rgba(108,99,255,0.08)',
+        fill: true,
+        tension: 0.25,
+        pointRadius: 2
+      }]
+    },
+    options: {
+      plugins: { legend: { display: false } },
+      scales: { x: { display: true }, y: { display: true, ticks: { callback: v => formatTLNumber(v) } } },
+      maintainAspectRatio: false
+    }
+  });
+
+  // summary doughnut under the analysis
   const ctx = document.getElementById('summaryChart').getContext('2d');
-  mainChart = new Chart(ctx, {
+  const dough = new Chart(ctx, {
     type:'doughnut',
     data:{ labels:['Gelir','Gider'], datasets:[{ data:[income, expense], backgroundColor:['#00c853','#ff5252'] }]},
     options:{plugins:{legend:{position:'bottom'}}, maintainAspectRatio:false}
   });
 
-  // update balance anim
+  // update balance anim and summary text
   animateBalanceTo(total);
-
-  // summary text
   metaSub.textContent = `${view.length} işlem görüntüleniyor • Toplam gelir ${formatTLNumber(income)} ₺`;
+}
+
+// Helper: build cumulative balance series for a given range
+function buildBalanceSeries(recordsList, range){
+  // normalize records to dates and signed amounts
+  const items = recordsList.map(r => ({ date: r.date, amt: (r.type === 'income' ? r.amount : -r.amount) }));
+  // convert string dates to Date objects (assumes YYYY-MM-DD)
+  items.forEach(it => { it.d = new Date(it.date + 'T00:00:00'); });
+
+  if(items.length === 0){ return { labels: [], values: [] }; }
+
+  const today = new Date();
+  today.setHours(0,0,0,0);
+  let startDate;
+  if(range === 'weekly'){
+    startDate = new Date(today); startDate.setDate(today.getDate() - 6); // last 7 days inclusive
+  } else if(range === 'monthly'){
+    startDate = new Date(today); startDate.setDate(today.getDate() - 29); // last 30 days
+  } else if(range === 'yearly'){
+    startDate = new Date(today); startDate.setDate(today.getDate() - 364); // last 365 days
+  } else { // all
+    const dates = items.map(i=>i.d);
+    startDate = new Date(Math.min(...dates)); startDate.setHours(0,0,0,0);
+  }
+
+  // build daily buckets from startDate to today
+  const byKey = new Map();
+  const labels = [];
+  for(let d = new Date(startDate); d <= today; d.setDate(d.getDate()+1)){
+    const key = d.toISOString().slice(0,10);
+    byKey.set(key, 0);
+    // label as DD.MM
+    labels.push(new Date(d).toLocaleDateString('tr-TR', { day: '2-digit', month: '2-digit' }));
+  }
+
+  // aggregate amounts into corresponding day
+  for(const it of items){
+    const key = it.d.toISOString().slice(0,10);
+    if(byKey.has(key)) byKey.set(key, byKey.get(key) + it.amt);
+  }
+
+  // produce cumulative series
+  const values = [];
+  let cum = 0;
+  // iterate keys in date order
+  const orderedKeys = Array.from(byKey.keys()).sort();
+  for(const k of orderedKeys){ cum += byKey.get(k) || 0; values.push(Math.round(cum*100)/100); }
+  return { labels, values };
+}
+
+function getWeekNumber(d){
+  // ISO week number
+  const date = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+  const dayNum = date.getUTCDay() || 7;
+  date.setUTCDate(date.getUTCDate() + 4 - dayNum);
+  const yearStart = new Date(Date.UTC(date.getUTCFullYear(),0,1));
+  const weekNo = Math.ceil((((date - yearStart) / 86400000) + 1)/7);
+  return String(weekNo).padStart(2,'0');
 }
 
 /* Render list */
@@ -739,8 +1229,8 @@ function renderRecords(){
           ${r.type==='income' ? '+' : '-'}${formatTLNumber(r.amount)} ₺
         </div>
         <div class="mt-2">
-          <button class="btn btn-sm btn-outline-secondary me-1" onclick="openEdit('${r.id}')">✏️</button>
-          <button class="btn btn-sm btn-outline-danger" onclick="deleteRecord('${r.id}')">🗑️</button>
+          <button class="btn btn-sm btn-outline-secondary me-1" onclick="openEdit('${r.id}')"><i class="fas fa-edit"></i></button>
+          <button class="btn btn-sm btn-outline-danger" onclick="deleteRecord('${r.id}')"><i class="fas fa-trash"></i></button>
         </div>
       </div>
     `;
@@ -854,7 +1344,6 @@ function closeAdvModal() {
   advContent.style.opacity = '0';
   setTimeout(()=> advModal.style.display = 'none', 220);
 }
-advBtnTop.addEventListener('click', openAdvModal);
 advBtn.addEventListener('click', openAdvModal);
 advClose.addEventListener('click', closeAdvModal);
 advModal.addEventListener('click', e => { if(e.target === advModal) closeAdvModal(); });
