@@ -1254,10 +1254,19 @@ function renderRecords(){
   const view = getFilteredRecords();
 
   // render items
+  // precompute cumulative balance per record (use ascending date order)
+  const balanceById = {};
+  try{
+    const asc = view.slice().sort((a,b) => a.date.localeCompare(b.date) || String(a.id).localeCompare(String(b.id)) );
+    let cum = 0;
+    for(const it of asc){ cum += (it.type === 'income' ? it.amount : -it.amount); balanceById[it.id] = Math.round(cum*100)/100; }
+  }catch(e){ console.error('[renderRecords] balance calc failed', e); }
+
   for(const r of view){
     const div = document.createElement('div');
     div.className = 'record-card ' + (r.type === 'income' ? 'income' : 'expense');
     const tagsHtml = (r.tags || []).map(t => `<span class="tag-chip">${escapeHtml(t)}</span>`).join('');
+    const prettyBal = formatTLNumber(balanceById[r.id] || 0);
     div.innerHTML = `
       <div>
         <div style="font-weight:700">${escapeHtml(r.note)}</div>
@@ -1267,6 +1276,7 @@ function renderRecords(){
         <div style="font-weight:800; color:${r.type === 'income' ? 'var(--income)' : 'var(--expense)'}">
           ${r.type==='income' ? '+' : '-'}${formatTLNumber(r.amount)} ₺
         </div>
+        <div style="font-size:.85rem; color:var(--muted); margin-top:6px">Bakiye: ${prettyBal} ₺</div>
         <div class="mt-2">
           <button class="btn btn-sm btn-outline-secondary me-1" onclick="openEdit('${r.id}')"><i class="fas fa-edit"></i></button>
           <button class="btn btn-sm btn-outline-danger" onclick="deleteRecord('${r.id}')"><i class="fas fa-trash"></i></button>
