@@ -13,6 +13,8 @@
 
   <!-- Chart.js -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-chart-financial"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns"></script>
 
   <!-- Font Awesome -->
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
@@ -150,7 +152,9 @@
     .balance-left { display:flex; flex-direction:column; gap:6px;}
     .balance-title { font-family: 'Poppins'; font-weight:300; font-size:.95rem; opacity:.95; color:rgba(255,255,255,0.95); }
     .balance-amount { display:flex; align-items:baseline; gap:8px; }
+    .currency { font-family: 'Montserrat'; font-weight:600; font-size: clamp(1.15rem, 2.6vw, 1.4rem); background: linear-gradient(90deg, rgba(255,255,255,0.95), rgba(255,255,255,0.8)); background-clip: text; -webkit-background-clip: text; -webkit-text-fill-color:transparent; }
     .currency { font-family: 'Montserrat'; font-weight:600; font-size: clamp(1.15rem, 2.6vw, 1.4rem); background: linear-gradient(90deg, rgba(255,255,255,0.95), rgba(255,255,255,0.8)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
+    .currency-badge { font-size: 1.3rem; color: rgba(255,255,255,0.95); }
     .value { font-family:'Montserrat'; font-weight:800; font-size: clamp(2.1rem, 6.8vw, 3.4rem); letter-spacing:-0.03em; line-height:1; color:white; text-shadow: 0 6px 24px rgba(0,0,0,0.18); transition: transform .18s ease; }
     .value.updated { transform: scale(1.06); }
 
@@ -199,7 +203,7 @@
     }
     input.form-control, select.form-select {
       background: transparent !important;
-      color: var(--text) !important;
+      color: var(--text);
       border: 1px solid var(--border) !important;
       border-radius:8px;
       padding:6px 10px;
@@ -219,7 +223,7 @@
       justify-content: center;
       gap:8px;
       transition: background .16s ease, transform .12s ease, box-shadow .12s ease;
-      border: 1px solid var(--border) !important;
+      border: 1px solid var(--border);
       background: transparent;
       color: var(--text) !important;
     }
@@ -228,6 +232,7 @@
     .btn-primary {
       background: linear-gradient(90deg, var(--accent-1), var(--accent-2));
       color: #fff !important;
+      border: 0;
       border-color: transparent !important;
       box-shadow: 0 10px 30px rgba(80,60,180,0.08);
     }
@@ -266,6 +271,10 @@
       font-size:0.95rem;
     }
 
+    .form-control:focus{
+      color: var(--text);
+    }
+
     /* Full-width helper for small screens */
     .w-mobile-full { width: auto; }
 
@@ -300,7 +309,7 @@
 
       /* Modal adjustments: full width and comfortable padding */
       .modal-box { width: 94%; padding:14px; }
-      #advancedSearchContent { opacity:1 !important; margin: 12px auto; }
+      #advancedSearchContent { opacity:1; margin: 12px auto; }
 
       /* Chart area scaling */
       #chartWrap { padding: 0 6px; }
@@ -350,7 +359,7 @@
     .account-popup.open { opacity:1; visibility:visible; pointer-events:auto; transform: translateY(0); }
     .account-popup-inner { background: var(--card); border:1px solid var(--border); border-radius:12px; padding:10px; box-shadow: 0 12px 40px rgba(0,0,0,0.12); }
     .ap-header { display:flex; gap:8px; align-items:center; padding-bottom:8px; border-bottom:1px solid rgba(0,0,0,0.03); }
-    .ap-avatar { width:44px; height:44px; border-radius:999px; display:flex; align-items:center; justify-content:center; background:rgba(0,0,0,0.06); }
+    .ap-avatar { width:44px; height:44px; border-radius:999px; overflow:hidden; display:flex; align-items:center; justify-content:center; background:rgba(0,0,0,0.06); }
     .ap-info { display:flex; flex-direction:column; }
     .ap-info #apName { font-weight:700; }
     .ap-actions { display:flex; flex-direction:column; gap:8px; margin-top:10px; }
@@ -388,8 +397,82 @@
     .tag-chip{ display:inline-block; margin-left:6px; font-size:.82rem; padding:4px 8px; border-radius:999px; background: rgba(0,0,0,0.06); }
 
     /* modal */
-    .modal-overlay { position: fixed; inset:0; display:flex; align-items:center; justify-content:center; background: rgba(0,0,0,0.35); z-index:1200; }
-    .modal-box { width: min(640px,94%); background: var(--card); border-radius:12px; padding:18px; box-shadow: 0 30px 80px rgba(0,0,0,0.4); border:1px solid var(--border); }
+    .modal-overlay { 
+      position: fixed; 
+      inset:0; display:flex; 
+      align-items:center; 
+      justify-content:center; 
+      background: rgba(0,0,0,0.35); 
+      z-index:1200; 
+      opacity:0; 
+      pointer-events:none; 
+      transition: opacity 0.26s ease; }
+    .modal-overlay.show { opacity:1; pointer-events:auto; }
+    .modal-overlay.closing { opacity:0; pointer-events:none; }
+    .modal-box { 
+      width: min(640px,94%); 
+      background: var(--card); 
+      border-radius:12px; 
+      padding:18px; 
+      box-shadow: 0 30px 80px rgba(0,0,0,0.4); 
+      border:1px solid var(--border); 
+      transform: translateY(-12px); 
+      opacity:0; 
+      transition: transform 0.28s cubic-bezier(.2,.9,.18,1), opacity 0.22s ease; 
+    }
+
+    .modal-overlay.show .modal-box { transform: translateY(0); opacity:1; }
+    .modal-overlay.closing .modal-box { transform: translateY(-12px); opacity:0; }
+
+    /* amount input states (green for income, red for expense) with subtle animated pulse */
+    .amount-input{ transition: box-shadow .28s ease, background-color .28s ease, border-color .26s ease, color .18s ease, transform .18s ease; border:1px solid rgba(0,0,0,0.04); }
+
+    /* subtle pulsing glow for income */
+    @keyframes incomePulse {
+      0% { box-shadow: 0 8px 18px rgba(16,185,129,0.06), 0 0 0 0 rgba(16,185,129,0.00); transform: translateY(0); background-position: 0% 50%; }
+      50% { box-shadow: 0 14px 40px rgba(16,185,129,0.10), 0 0 18px 6px rgba(16,185,129,0.04); transform: translateY(-2px); background-position: 50% 50%; }
+      100% { box-shadow: 0 8px 18px rgba(16,185,129,0.06), 0 0 0 0 rgba(16,185,129,0.00); transform: translateY(0); background-position: 100% 50%; }
+    }
+
+    /* subtle pulsing glow for expense */
+    @keyframes expensePulse {
+      0% { box-shadow: 0 8px 18px rgba(244,67,54,0.06), 0 0 0 0 rgba(244,67,54,0.00); transform: translateY(0); background-position: 0% 50%; }
+      50% { box-shadow: 0 14px 40px rgba(244,67,54,0.10), 0 0 18px 6px rgba(244,67,54,0.04); transform: translateY(-2px); background-position: 50% 50%; }
+      100% { box-shadow: 0 8px 18px rgba(244,67,54,0.06), 0 0 0 0 rgba(244,67,54,0.00); transform: translateY(0); background-position: 100% 50%; }
+    }
+
+    .amount-input.income{ background: linear-gradient(90deg, rgba(16,185,129,0.10), rgba(16,185,129,0.02)); background-size: 200% 200%; border-color: rgba(16,185,129,0.22); color: #00b66a; animation: incomePulse 3s ease-in-out infinite; }
+    .amount-input.expense{ background: linear-gradient(90deg, rgba(244,67,54,0.10), rgba(244,67,54,0.02)); background-size: 200% 200%; border-color: rgba(244,67,54,0.22); color: #e53935; animation: expensePulse 3s ease-in-out infinite; }
+
+    /* animated select styling (match input feel) */
+    /* make select look like a pill and use card background (white in light, dark in dark mode) */
+    #d_type{
+      transition: box-shadow .28s ease, border-color .26s ease, transform .18s ease, background-color .18s ease, color .18s ease;
+      -webkit-appearance: none; appearance: none;
+      background: var(--card);
+      border-radius: 10px;
+      padding-right: 36px; /* space for custom arrow */
+      position: relative;
+      border: 1px solid rgba(0,0,0,0.06);
+      color: var(--text);
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24'%3E%3Cpath fill='%23999' d='M7 10l5 5 5-5z'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 10px center;
+      background-size: 12px 12px;
+    }
+    /* color accents and subtle lift when the select reflects income/expense */
+    #d_type.income{ box-shadow: 0 8px 22px rgba(16,185,129,0.06); border-color: rgba(16,185,129,0.16); transform: translateY(-1px); color: #00b66a; background: linear-gradient(90deg, rgba(16,185,129,0.02), var(--card)); }
+    #d_type.expense{ box-shadow: 0 8px 22px rgba(244,67,54,0.06); border-color: rgba(244,67,54,0.16); transform: translateY(-1px); color: #e53935; background: linear-gradient(90deg, rgba(244,67,54,0.02), var(--card)); }
+
+    /* style the dropdown options when possible (browser support varies) */
+    #d_type option { padding: 6px 8px; }
+    #d_type option.opt-income { background: linear-gradient(90deg, rgba(16,185,129,0.06), rgba(16,185,129,0.01)); color: #007a4d; }
+    #d_type option.opt-expense { background: linear-gradient(90deg, rgba(244,67,54,0.06), rgba(244,67,54,0.01)); color: #b71c1c; }
+    /* ensure checked/active options remain readable */
+    #d_type option:checked, #d_type option:active { outline: none; }
+
+    /* For dark-mode ensure selected pill contrasts (var(--card) becomes dark automatically) */
+    body.dark #d_type { color: var(--text); }
 
   /* login modal styles */
   .login-modal { position: fixed; inset:0; display:none; align-items:center; justify-content:center; background: rgba(0,0,0,0.35); z-index:1250; }
@@ -458,9 +541,152 @@
         justify-content: flex-end;
     }
   /* Analysis area controls */
-  .analysis-area { background: var(--card); border:1px solid var(--border); border-radius:12px; padding:12px; box-shadow: 0 8px 30px rgba(0,0,0,0.04); margin-bottom:12px; }
-  .analysis-range { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:8px; }
-  .analysis-range .btn { padding:6px 10px; font-size:0.88rem; }
+  .analysis-area { 
+    background: #131722; 
+    border:1px solid rgba(255,255,255,0.1); 
+    border-radius:12px; 
+    padding:12px; 
+    box-shadow: 0 8px 30px rgba(0,0,0,0.15);
+    margin-bottom:12px;
+    color: #e8e8e8;
+  }
+  .analysis-area canvas {
+    background: #131722;
+  }
+  .analysis-range { display:flex; gap:8px; flex-wrap:wrap; }
+  .analysis-range .btn { 
+    padding:6px 10px; 
+    font-size:0.88rem;
+    color: #e8e8e8 !important;
+    border-color: rgba(255,255,255,0.1) !important;
+  }
+  .analysis-area .btn-outline-secondary {
+    color: #e8e8e8 !important;
+    border-color: rgba(255,255,255,0.1) !important;
+  }
+  .analysis-area .btn-outline-secondary:hover {
+    background: rgba(255,255,255,0.1);
+  }
+  .analysis-area .btn-outline-secondary.active {
+    background: rgba(255,255,255,0.15);
+  }
+  
+  /* Chart Settings Collapsible Styles */
+  .chart-settings-container {
+    margin: 8px 0;
+    width: 100%;
+    max-width: 600px;
+  }
+  
+  .collapsible-btn {
+    width: 100%;
+    display: flex !important;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 15px !important;
+    transition: all 0.3s ease;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.1);
+  }
+  
+  .collapsible-btn:hover {
+    background: rgba(255,255,255,0.1);
+  }
+  
+  .collapsible-btn.active {
+    background: rgba(255,255,255,0.15);
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
+    border-bottom-color: transparent;
+  }
+  
+  .collapsible-btn i {
+    transition: transform 0.3s ease;
+  }
+  
+  .collapsible-btn.active i {
+    transform: rotate(180deg);
+  }
+  
+  .collapsible-content {
+    height: 0;
+    padding: 0;
+    overflow: hidden;
+    transition: all 0.3s ease;
+    opacity: 0;
+    background: rgba(255,255,255,0.03);
+    border-radius: 0 0 8px 8px;
+    border: 1px solid transparent;
+  }
+  
+  .collapsible-content.open {
+    height: auto;
+    min-height: 180px;
+    opacity: 1;
+    padding: 15px;
+    border: 1px solid rgba(255,255,255,0.1);
+    border-top: none;
+  }
+  
+  .settings-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 15px;
+  }
+  
+  .settings-item {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  
+  .settings-item input[type="color"] {
+    height: 35px;
+    border-radius: 4px;
+    border: 1px solid rgba(255,255,255,0.1);
+    background: #131722;
+  }
+  .analysis-area .form-select {
+    background: #131722 !important;
+    color: #e8e8e8 !important;
+    border-color: rgba(255,255,255,0.1) !important;
+  }
+  /* Delete confirmation modal */
+  #deleteConfirmModal {
+    position: fixed; inset: 0; display: none; align-items: center; justify-content: center; z-index: 2500;
+  }
+  #deleteConfirmModal .modal-inner { background: var(--card); border-radius: 10px; padding:16px; width:320px; max-width:90%; box-shadow:0 12px 40px rgba(0,0,0,0.28); transform: translateY(-10px); opacity:0; transition: all 220ms ease; border:1px solid var(--border); }
+  #deleteConfirmModal.show .modal-inner { transform: translateY(0); opacity:1; }
+  #deleteConfirmModal .modal-actions { display:flex; gap:8px; justify-content:flex-end; margin-top:12px; }
+
+  /* Mobile balance search modal */
+  #balanceSearchModal { position: fixed; inset: 0; display: none; align-items: center; justify-content: center; z-index:2600; }
+  #balanceSearchModal .inner { background: var(--card); padding:14px; border-radius:10px; width:360px; max-width:94%; box-shadow:0 12px 40px rgba(0,0,0,0.28); border:1px solid var(--border); transform: translateY(10px); opacity:0; transition:all 200ms ease; }
+  #balanceSearchModal.show .inner { transform: translateY(0); opacity:1; }
+  #balanceSearchModal input { font-size:1.1rem; padding:8px 10px; border-radius:6px; border:1px solid var(--border); background:transparent; color:var(--muted); width:100%; box-sizing:border-box }
+  /* Scroll-up indicator (desktop only) */
+  #scrollUpIndicator {
+    position: fixed;
+    top: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 1800;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border-radius: 20px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    box-shadow: 0 6px 20px rgba(0,0,0,0.08);
+    cursor: pointer;
+  }
+  #scrollUpIndicator i { color: var(--muted); }
+  @media (max-width: 767px) { #scrollUpIndicator { display: none !important; } }
+  .analysis-area label {
+    color: #9f9fa8;
+  }
   </style>
 </head>
 <body>
@@ -503,12 +729,17 @@
                 <button id="apMigrate" class="btn btn-sm btn-outline-success">Yereli Taşı</button>
                 <button id="apClear" class="btn btn-sm btn-outline-danger">Yereli Sil</button>
                 <button id="apExport" class="btn btn-sm btn-outline-secondary">Veriyi Dışa Aktar</button>
+                <button id="apImport" class="btn btn-sm btn-outline-secondary">Veriyi İçe Aktar</button>
+                <input id="importFile" type="file" accept="application/json" style="display:none" />
                 <button id="apSignOut" class="btn btn-sm btn-outline-primary">Çıkış Yap</button>
               </div>
         </div>
       </div>
     </div>
   </div>
+
+  <!-- Fixed top scroll-up indicator (desktop only) -->
+  <div id="scrollUpIndicator" role="button" tabindex="0" title="Yukarıya git"><i class="fas fa-arrow-up"></i></div>
 
   <!-- BALANCE CARD -->
   <div class="balance-wrap">
@@ -518,7 +749,7 @@
       <div class="balance-left">
         <div class="balance-title">Toplam Bakiye</div>
         <div class="balance-amount" aria-hidden="true">
-          <div class="currency">₺</div>
+          <div class="currency-badge" id="currencyBadge">₺</div>
           <div id="balanceValue" class="value">0,00</div>
         </div>
       </div>
@@ -541,7 +772,7 @@
         <button id="filterExpense" class="btn btn-sm btn-outline-secondary ms-1">Gider</button>
       </div>
       <div class="filter-pill" style="display:flex; align-items:center;">
-        <input id="searchNote" class="form-control form-control-sm" placeholder="Ara...">
+        <input id="searchNote" type="text" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" class="form-control form-control-sm" placeholder="Ara...">
       </div>
     </div>
 
@@ -552,6 +783,10 @@
        <!-- Advanced search moved into topbar as requested -->
       <button id="advancedSearchBtn" class="btn btn-sm btn-outline-secondary" style="background:transparent; border:1px solid var(--border);">
         <i class="fa-solid fa-magnifying-glass-dollar"></i> Gelişmiş
+      </button>
+      <!-- Quick jump to analysis/chart area for desktop users -->
+      <button id="gotoChartBtn" class="btn btn-sm btn-outline-secondary" title="Grafiğe git" style="background:transparent; border:1px solid var(--border);">
+        <i class="fas fa-chart-line"></i> Grafik
       </button>
       <!-- New entry + floating remains -->
       <button id="openAdd" class="btn btn-sm btn-success">+ Yeni</button>
@@ -583,7 +818,15 @@
     <div class="modal-box">
       <h5 id="modalTitle">Yeni İşlem</h5>
       <div class="row g-2 mt-2">
-        <div class="col-12"><input id="d_amount" class="form-control" placeholder="Tutar (+/-)"></div>
+        <div class="col-12 col-md-4" style="display:flex; align-items:center; gap:8px;">
+          <label for="d_type" style="font-size:.9rem; margin-right:6px; white-space:nowrap">Tür:</label>
+          <select id="d_type" class="form-select form-select-sm" style="min-width:140px">
+            <!-- Note: we add classes on options so we can style dropdown entries where supported -->
+            <option value="income" class="opt-income">Gelir</option>
+            <option value="expense" class="opt-expense">Gider</option>
+          </select>
+        </div>
+        <div class="col-12 col-md-8"><input id="d_amount" class="form-control amount-input" placeholder="Tutar (+/-)"></div>
         <div class="col-12 mt-2"><input id="d_note" class="form-control" placeholder="Not"></div>
         <div class="col-12 mt-2"><input id="d_tags" class="form-control" placeholder="Etiket (virgülle)"></div>
         <div class="col-6 mt-2"><input id="d_date" type="date" class="form-control"></div>
@@ -639,10 +882,85 @@
         <div style="margin-top:8px; display:flex; justify-content:center;"><button id="loginGoogle" class="btn btn-outline-primary"><i class="fab fa-google"></i> Google ile Giriş</button></div>
       </div>
     </div>
+  
+  <!-- Single Delete confirmation modal (one instance) -->
+  <div id="deleteConfirmModal" aria-hidden="true">
+    <div class="modal-inner">
+      <div style="font-weight:700;">Bu kaydı silmek istediğinize emin misiniz?</div>
+      <div style="margin-top:8px; color:var(--muted); font-size:.95rem">Silme işlemi geri alınamaz.</div>
+      <div class="modal-actions">
+        <button id="cancelDeleteBtn" class="btn btn-sm btn-outline-secondary">İptal</button>
+        <button id="confirmDeleteBtn" class="btn btn-sm btn-danger">Sil</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Single Mobile balance search modal (one instance) -->
+  <div id="balanceSearchModal" aria-hidden="true">
+    <div class="inner">
+      <div style="font-weight:700; margin-bottom:8px">Bakiye Ara (TL)</div>
+      <input id="balanceSearchInput" type="number" inputmode="decimal" placeholder="Tutar gir (örn. 1234.50)">
+      <div style="display:flex; gap:8px; justify-content:flex-end; margin-top:10px">
+        <button id="balanceSearchCancel" class="btn btn-sm btn-outline-secondary">İptal</button>
+        <button id="balanceSearchOk" class="btn btn-sm btn-primary">Ara</button>
+      </div>
+    </div>
+  </div>
 
 <script type="module">
 
-  
+  // Quick runtime checks: confirm script is loaded and capture uncaught errors.
+    try { /* module loaded (log suppressed per user request) */ } catch(e){}
+  function settingsLog(...args){
+    try{
+      const txt = args.map(a => {
+        try{ return typeof a === 'string' ? a : JSON.stringify(a); } catch(e){ return String(a); }
+      }).join(' ');
+      const time = (new Date()).toISOString().replace('T',' ').slice(0,19);
+      const line = `[${time}] ${txt}`;
+      // write to console for settings-related debugging
+      try { console.log(line); } catch(e){}
+      // attempt to send to server in background (best-effort)
+      try{ serverLog(line); } catch(e){}
+    }catch(e){ /* swallow */ }
+  }
+  // Send log to server (Firebase RTDB) when possible; fallback to local pending queue
+  async function serverLog(line){
+    try{
+      if(typeof push === 'function' && db){
+        const path = (currentUser && currentUser.uid) ? `users/${currentUser.uid}/appLogs` : `anon/appLogs`;
+        // push a small object: timestamp and text
+        await push(ref(db, path), { ts: Date.now(), txt: line });
+        return true;
+      }
+    }catch(e){ /* ignore */ }
+    // fallback: store locally to flush later
+    try{
+      const key = 'pts_pending_logs_v1';
+      const arr = JSON.parse(localStorage.getItem(key) || '[]');
+      arr.push({ ts: Date.now(), txt: line });
+      localStorage.setItem(key, JSON.stringify(arr));
+    }catch(e){ /* swallow */ }
+    return false;
+  }
+
+  // Flush any pending logs from localStorage to user's DB (call when user signs in)
+  async function flushPendingLogs(){
+    try{
+      const key = 'pts_pending_logs_v1';
+      const arr = JSON.parse(localStorage.getItem(key) || '[]');
+      if(!arr || !arr.length) return;
+      if(!currentUser || !currentUser.uid) return; // keep queued until user available
+      const path = `users/${currentUser.uid}/appLogs`;
+      for(const it of arr){
+        try{ await push(ref(db, path), { ts: it.ts || Date.now(), txt: it.txt || '' }); } catch(e){ /* leave rest queued */ return; }
+      }
+      // cleared all
+      localStorage.removeItem(key);
+    }catch(e){ /* ignore */ }
+  }
+  window.addEventListener('error', function(ev){ try { console.error('Uncaught error:', ev.message, ev.filename + ':' + ev.lineno + ':' + ev.colno); } catch(e){} });
+
   import { initializeApp } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js";
   import { getAuth, onAuthStateChanged, signOut, signInWithPopup, GoogleAuthProvider, signInWithEmailAndPassword, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js";
   import { getDatabase, ref, set, onValue, push } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-database.js";
@@ -671,7 +989,7 @@
 
   // Attach listener for a specific user's records path
   function attachRecordsListenerForUser(uid){
-    console.log('[attach] attachRecordsListenerForUser', uid);
+    dbg('[attach] attachRecordsListenerForUser', uid);
     // detach previous listener if exists
     try { if(typeof recordsUnsub === 'function') recordsUnsub(); } catch(e){}
     recordsRef = ref(db, `users/${uid}/records`);
@@ -685,7 +1003,7 @@
             const arr = JSON.parse(local);
             const obj = {};
             for(const r of arr) obj[r.id || (Date.now()+Math.random())] = r;
-            set(recordsRef, obj).then(()=> console.log('[attach] Seeded user DB from localStorage'));
+            set(recordsRef, obj).then(()=> dbg('[attach] Seeded user DB from localStorage'));
           } catch(e){ console.error('[attach] seed parse error', e); }
         }
       }
@@ -693,7 +1011,7 @@
       records = arr;
       window.records = records;
       if(typeof editingId === 'string' && !records.find(r=>r.id === editingId)) editingId = null;
-      console.log('[attach] received', records.length, 'records for user', uid);
+      dbg('[attach] received', records.length, 'records for user', uid);
       renderRecords();
     });
   }
@@ -707,13 +1025,13 @@
     window.records = records;
     try {
       if(recordsRef){
-        console.log('[saveRecords] currentUser=', currentUser && currentUser.uid, 'writing', Object.keys(obj).length, 'items');
-        set(recordsRef, obj).then(()=> console.log('[saveRecords] DB write ok')).catch(err => {
-          console.error('[saveRecords] DB write failed', err);
-          try { localStorage.setItem('hesapkitap_records_v2', JSON.stringify(records)); console.log('[saveRecords] backup saved to localStorage'); } catch(e){}
+        dbg('[saveRecords] currentUser=', currentUser && currentUser.uid, 'writing', Object.keys(obj).length, 'items');
+          set(recordsRef, obj).then(()=> dbg('[saveRecords] DB write ok')).catch(err => {
+            if(DEBUG) console.error('[saveRecords] DB write failed', err);
+            try { localStorage.setItem('hesapkitap_records_v2', JSON.stringify(records)); dbg('[saveRecords] backup saved to localStorage'); } catch(e){}
         });
       } else {
-        console.log('[saveRecords] no recordsRef; saving to localStorage');
+        dbg('[saveRecords] no recordsRef; saving to localStorage');
         try { localStorage.setItem('hesapkitap_records_v2', JSON.stringify(records)); } catch(e){}
       }
     } catch(e){
@@ -775,7 +1093,7 @@
   try{ if(apSignIn) apSignIn.addEventListener('click', ()=> openLoginModal()); } catch(e){}
 
   onAuthStateChanged(auth, user => {
-    console.log('[auth] onAuthStateChanged, user=', user && user.uid);
+    dbg('[auth] onAuthStateChanged, user=', user && user.uid);
     currentUser = user;
     if(user){
       document.getElementById('userInfo').textContent = user.displayName || user.email;
@@ -783,6 +1101,8 @@
       document.getElementById('authBtn').textContent = 'Çıkış';
       // attach per-user listener
       try{ attachRecordsListenerForUser(user.uid); } catch(e){ console.error('[auth] attach error', e); }
+      // flush any pending logs collected while offline/anonymous
+      try{ flushPendingLogs(); } catch(e){ /* ignore */ }
       // show migrate/clear buttons
       try { document.getElementById('migrateLocalBtn').style.display = 'inline-block'; document.getElementById('clearLocalBtn').style.display = 'inline-block'; } catch(e){}
       // update account popup UI
@@ -798,12 +1118,12 @@
   document.getElementById('userAvatar').innerHTML = '<i class="fas fa-user" style="font-size:1rem"></i>';
       document.getElementById('authBtn').textContent = 'Giriş';
       // detach listener and load local fallback
-      console.log('[auth] user signed out, detaching DB listener and loading localStorage fallback');
+      dbg('[auth] user signed out, detaching DB listener and loading localStorage fallback');
       try { if(typeof recordsUnsub === 'function') recordsUnsub(); } catch(e){}
       recordsRef = null; recordsUnsub = null;
       try {
         const local = localStorage.getItem('hesapkitap_records_v2');
-        if(local){ records = JSON.parse(local); window.records = records; renderRecords(); console.log('[auth] loaded', records.length, 'records from localStorage'); }
+        if(local){ records = JSON.parse(local); window.records = records; renderRecords(); dbg('[auth] loaded', records.length, 'records from localStorage'); }
         else { records = []; window.records = records; renderRecords(); }
       } catch(e){ records = []; window.records = records; renderRecords(); }
       // hide migrate/clear buttons when signed out
@@ -828,7 +1148,7 @@
         if(!currentUser) return alert('Önce giriş yapın');
         if(!confirm('Yerel yedek veriyi kullanıcı hesabınıza taşımak istiyor musunuz? (Geri alınamaz)')) return;
         try {
-          console.log('[migrate] currentUser=', currentUser && currentUser.uid);
+          dbg('[migrate] currentUser=', currentUser && currentUser.uid);
           const local = localStorage.getItem('hesapkitap_records_v2');
           if(!local) return alert('Yerel yedek bulunamadı');
           const arr = JSON.parse(local);
@@ -836,7 +1156,7 @@
           for(const r of arr) obj[r.id || (Date.now()+Math.random())] = r;
           const userRef = ref(db, `users/${currentUser.uid}/records`);
           await set(userRef, obj);
-          console.log('[migrate] set ok to', `users/${currentUser.uid}/records`);
+          dbg('[migrate] set ok to', `users/${currentUser.uid}/records`);
           alert('Yerel veriler hesabınıza taşındı.');
         } catch(e){ console.error('[migrate] migrate error', e); alert('Taşıma sırasında hata: ' + (e && e.message)); }
       });
@@ -858,6 +1178,9 @@
 /* ---- Firebase imports will be in module script below; keep app logic separate until DB ready --- */
 
 let records = [];           // data (mirrored from firebase)
+// Toggle verbose logging during debugging. Set to true only when needed.
+const DEBUG = false;
+function dbg(...args){ if(DEBUG) console.log(...args); }
 let editingId = null;
 let currentUser = null;
 
@@ -895,12 +1218,97 @@ const authBtn = document.getElementById('authBtn');
 const userInfo = document.getElementById('userInfo');
 const userAvatar = document.getElementById('userAvatar');
 
+// Balance full-value hover tooltip (desktop only)
+(function(){
+  try{
+    // don't enable on touch devices
+    if(('ontouchstart' in window) || window.matchMedia && window.matchMedia('(pointer:coarse)').matches) return;
+    const el = document.getElementById('balanceValue');
+    if(!el) return;
+    let tip = document.getElementById('balanceFullTooltip');
+    if(!tip){
+      tip = document.createElement('div');
+      tip.id = 'balanceFullTooltip';
+      tip.style.position = 'fixed';
+      tip.style.pointerEvents = 'none';
+      tip.style.background = 'var(--card)';
+      tip.style.color = 'var(--muted)';
+      tip.style.border = '1px solid var(--border)';
+      tip.style.padding = '6px 8px';
+      tip.style.borderRadius = '6px';
+      tip.style.boxShadow = '0 8px 30px rgba(0,0,0,0.12)';
+      tip.style.zIndex = 3000;
+      tip.style.display = 'none';
+      document.body.appendChild(tip);
+    }
+
+    function showFull(evt){
+      const full = el.title || el.getAttribute('data-full') || el.textContent || '';
+      tip.textContent = full;
+      tip.style.left = (evt.clientX + 12) + 'px';
+      tip.style.top = (evt.clientY + 12) + 'px';
+      tip.style.display = 'block';
+    }
+    function moveFull(evt){
+      tip.style.left = (evt.clientX + 12) + 'px';
+      tip.style.top = (evt.clientY + 12) + 'px';
+    }
+    function hideFull(){ tip.style.display = 'none'; }
+
+    el.addEventListener('mouseenter', showFull);
+    el.addEventListener('mousemove', moveFull);
+    el.addEventListener('mouseleave', hideFull);
+  }catch(e){ /* ignore */ }
+})();
+
+// Mobile: tapping balance opens numeric search modal (only on touch devices)
+(function(){
+  try{
+    if(!('ontouchstart' in window) && !(window.matchMedia && window.matchMedia('(pointer:coarse)').matches)) return;
+    const el = document.getElementById('balanceValue');
+    const modal = document.getElementById('balanceSearchModal');
+    const input = document.getElementById('balanceSearchInput');
+    const cancel = document.getElementById('balanceSearchCancel');
+    const ok = document.getElementById('balanceSearchOk');
+    if(!el || !modal || !input) return;
+    function open(){ modal.style.display='flex'; modal.classList.add('show'); modal.setAttribute('aria-hidden','false'); input.focus(); }
+    function close(){ modal.classList.remove('show'); modal.style.display='none'; modal.setAttribute('aria-hidden','true'); }
+    el.addEventListener('click', (e)=>{ e.preventDefault(); open(); });
+    if(cancel) cancel.addEventListener('click', ()=> close());
+    if(ok) ok.addEventListener('click', ()=>{
+      const v = parseFloat(input.value);
+      if(!isNaN(v)){
+        // filter records by approx amount: show records with amount equal to v (exact) or within small tolerance
+        advancedFilters = { minAmt: v, maxAmt: v, startDate:null, endDate:null, tagQuery: [] };
+        renderRecords();
+      }
+      close();
+    });
+  }catch(e){}
+})();
+
 /* Mobile bottom nav wiring (exists only on small screens) */
 const navHome = document.getElementById('navHome');
 const navSearch = document.getElementById('navSearch');
 const navAdd = document.getElementById('navAdd');
 const navShared = document.getElementById('navShared');
 const navAccount = document.getElementById('navAccount');
+
+// Quick jump button (desktop): scroll to analysis chart
+const gotoChartBtn = document.getElementById('gotoChartBtn');
+if(gotoChartBtn) gotoChartBtn.addEventListener('click', (e) => {
+  e.preventDefault();
+  // prefer the main analysis canvas; fallback to summary or wrapper
+  const target = document.getElementById('analysisChart') || document.getElementById('summaryChart') || document.getElementById('chartWrap');
+  if(!target) {
+    // ensure charts are built then scroll
+    updateChartsForView();
+    setTimeout(()=> { const t = document.getElementById('analysisChart') || document.getElementById('summaryChart') || document.getElementById('chartWrap'); if(t) { t.scrollIntoView({ behavior: 'smooth', block: 'center' }); try{ t.focus(); }catch(e){} } }, 420);
+    return;
+  }
+  target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  setTimeout(()=> { try{ target.focus(); } catch(e){} }, 420);
+});
 
 if(navAdd) navAdd.addEventListener('click', (e)=> { e.preventDefault(); openAdd(); });
 if(navSearch) navSearch.addEventListener('click', (e)=> { e.preventDefault(); openAdvModal(); });
@@ -955,6 +1363,80 @@ if(apExport) apExport.addEventListener('click', ()=> {
   }catch(e){ console.error('export error', e); alert('Dışa aktarma başarısız'); }
   toggleAccountPopup(false);
 });
+// Import handler: open file picker, parse JSON, validate and merge/replace into DB or localStorage
+const apImportBtn = document.getElementById('apImport');
+const importFileInput = document.getElementById('importFile');
+if(apImportBtn && importFileInput){
+  apImportBtn.addEventListener('click', ()=> importFileInput.click());
+  importFileInput.addEventListener('change', (ev)=>{
+    const f = ev.target.files && ev.target.files[0];
+    if(!f) return;
+    const reader = new FileReader();
+    reader.onload = async (e)=>{
+      try{
+        const txt = e.target.result;
+        const parsed = JSON.parse(txt);
+        if(!Array.isArray(parsed)) return alert('Geçersiz dosya formatı: beklenen dizi');
+        // normalize records
+        const imported = parsed.map(r=>({
+          id: r.id || String(Date.now() + Math.floor(Math.random()*9999)),
+          amount: Number(r.amount || r.tutar || 0),
+          type: (r.type === 'income' || r.type === 'expense') ? r.type : (Number(r.amount) >= 0 ? 'income' : 'expense'),
+          note: r.note || r.not || '(not yok)',
+          tags: Array.isArray(r.tags) ? r.tags : (r.tags ? String(r.tags).split(',').map(t=>t.trim()).filter(Boolean) : []),
+          date: r.date || new Date().toISOString().slice(0,10)
+        }));
+
+        // ask user whether replace or merge
+        const choice = confirm('Veriyi birleştirmek için OK, mevcut veriyi tamamen değiştirmek için Cancel tuşlayın. (OK = merge, Cancel = replace)');
+
+        if(currentUser && recordsRef){
+          // write to user's DB
+          if(choice){
+            // merge: combine with existing records array
+            const existing = records || [];
+            // ensure no id collisions
+            const map = {};
+            for(const ex of existing) map[ex.id] = ex;
+            for(const im of imported) map[im.id] = im; // imported overwrites on conflict
+            const obj = {};
+            for(const k of Object.keys(map)) obj[k] = map[k];
+            await set(recordsRef, obj);
+            alert('Veri birleştirildi ve hesabınıza kaydedildi.');
+          } else {
+            // replace
+            const obj = {};
+            for(const r of imported) obj[r.id] = r;
+            const userRef = ref(db, `users/${currentUser.uid}/records`);
+            await set(userRef, obj);
+            alert('Hesabınızın verisi başarıyla değiştirildi.');
+          }
+        } else {
+          // not signed in -> use localStorage
+          if(choice){
+            const existing = JSON.parse(localStorage.getItem('hesapkitap_records_v2') || '[]');
+            const map = {};
+            for(const ex of existing) map[ex.id] = ex;
+            for(const im of imported) map[im.id] = im;
+            const out = Object.keys(map).map(k=>map[k]);
+            localStorage.setItem('hesapkitap_records_v2', JSON.stringify(out));
+            alert('Yerel veriye birleştirme yapıldı.');
+          } else {
+            localStorage.setItem('hesapkitap_records_v2', JSON.stringify(imported));
+            alert('Yerel yedek başarıyla değiştirildi.');
+          }
+        }
+
+        // refresh UI
+        try{ if(currentUser){ attachRecordsListenerForUser(currentUser.uid); } else { records = JSON.parse(localStorage.getItem('hesapkitap_records_v2') || '[]'); renderRecords(); } }catch(e){}
+      }catch(err){ console.error('import error', err); alert('İçe aktarma sırasında hata: ' + (err && err.message)); }
+      // clear input
+      importFileInput.value = '';
+      toggleAccountPopup(false);
+    };
+    reader.readAsText(f);
+  });
+}
 if(apSignOut) apSignOut.addEventListener('click', ()=> { toggleAccountPopup(false); const b=document.getElementById('authBtn'); if(b) b.click(); });
 const apSignIn = document.getElementById('apSignIn');
 if(apSignIn) apSignIn.addEventListener('click', ()=> { toggleAccountPopup(false); const b=document.getElementById('authBtn'); if(b) b.click(); });
@@ -1009,6 +1491,7 @@ document.addEventListener('click', (ev) => {
 /* Chart instances */
 let mainChart = null;
 let previewChart = null;
+let summaryChart = null;
 
 /* Theme init: prefer device, but allow override */
 function initTheme() {
@@ -1045,7 +1528,13 @@ function animateBalanceTo(target){
     const t = Math.min(1, (now - startTime)/duration);
     const eased = t<.5 ? 2*t*t : -1 + (4 - 2*t)*t;
     const cur = start + (target - start) * eased;
-    balanceValueEl.textContent = formatTLNumber(cur);
+    // cur is in currently-selected currency when Animate is invoked with convertedTotal
+    const currency = (document.getElementById('currencySelect') && document.getElementById('currencySelect').value) || 'TRY';
+    // display full or compact depending on available space
+    try{ displayBalance(cur, currency); } catch(e){
+      // fallback: compact
+      try{ balanceValueEl.textContent = formatCompactConverted(cur, currency); balanceValueEl.title = formatConverted(cur, currency); }catch(e){}
+    }
     if(t < 1) animateFrame = requestAnimationFrame(step);
     else { displayedBalance = target; animateFrame = null; }
   }
@@ -1053,6 +1542,133 @@ function animateBalanceTo(target){
   balanceValueEl.classList.add('updated');
   setTimeout(()=> balanceValueEl.classList.remove('updated'), 220);
 }
+
+// Helper: get current currency selection
+function getCurrentCurrency(){ return (document.getElementById('currencySelect') && document.getElementById('currencySelect').value) || 'TRY'; }
+
+// Numeric-only variants used for the prominent balance display (no currency symbol)
+function formatConvertedNumeric(amount, currency) {
+  const num = (typeof amount === 'number' && isFinite(amount)) ? amount : Number(amount);
+  const safe = isFinite(num) ? num : 0;
+  switch(currency) {
+    case 'TRY':
+      return formatTLNumber(safe);
+    case 'USD':
+    case 'EUR':
+      return safe.toFixed(2);
+    case 'GLD_Q':
+    case 'GLD_F':
+    case 'GLD_G':
+      return safe.toFixed(4);
+    case 'BTC':
+      return safe.toFixed(6);
+    default:
+      return formatTLNumber(safe);
+  }
+}
+
+function formatCompactConvertedNumeric(amount, currency) {
+  const num = (typeof amount === 'number' && isFinite(amount)) ? amount : Number(amount);
+  const safe = isFinite(num) ? num : 0;
+  const abs = Math.abs(safe);
+  function fmt(n){
+    const s = (Math.round(n * 1000) / 1000).toString().replace('.', ',');
+    return s;
+  }
+  if(abs >= 1e9) return fmt(safe / 1e9) + 'B';
+  if(abs >= 1e6) return fmt(safe / 1e6) + 'M';
+  if(abs >= 1e3) return fmt(safe / 1e3) + 'K';
+  return formatConvertedNumeric(safe, currency);
+}
+
+// Display balance: show numeric-only visible text (no symbol), use full formatted value in tooltip/title.
+function displayBalance(amount, currency){
+  try{
+    if(!balanceValueEl) return;
+    // full (with symbol) for tooltip/title, numeric-only for visible text
+    const full = formatConverted(amount, currency);
+    const fullNumeric = formatConvertedNumeric(amount, currency);
+    const compact = formatCompactConverted(amount, currency);
+    const compactNumeric = formatCompactConvertedNumeric(amount, currency);
+
+    // put full text first so we can measure whether it overflows
+    balanceValueEl.style.whiteSpace = 'nowrap';
+    // restore original font-size if we stored it earlier
+    try{
+      if(!balanceValueEl.dataset.origFontSize){
+        const cs = window.getComputedStyle(balanceValueEl);
+        balanceValueEl.dataset.origFontSize = cs.fontSize || '';
+      }
+    }catch(e){}
+    // reset style to original
+    balanceValueEl.style.fontSize = balanceValueEl.dataset.origFontSize || '';
+
+    // visible numeric-only text
+    balanceValueEl.textContent = fullNumeric;
+    balanceValueEl.setAttribute('data-full', full);
+    try{ balanceValueEl.title = full; } catch(e){}
+
+    // compute available width inside the balance-amount
+    const parent = balanceValueEl.parentElement; // .balance-amount
+    let available = null;
+    try{
+      if(parent){
+        const parentStyle = window.getComputedStyle(parent);
+        const gap = parseFloat(parentStyle.columnGap || parentStyle.gap || 8) || 8;
+        // currency badge is outside the inline area, so use full parent width
+        available = parent.clientWidth - 4; // small padding buffer
+      }
+    }catch(e){ available = null; }
+
+    // First: set font-size based on amount magnitude (prefer shrinking by numeric size)
+    try{
+      const orig = balanceValueEl.dataset.origFontSize ? parseFloat(balanceValueEl.dataset.origFontSize) : (parseFloat(window.getComputedStyle(balanceValueEl).fontSize) || 28);
+      let scale = 1;
+      const absAmt = Math.abs(Number(amount) || 0);
+      if(absAmt >= 1e9) scale = 0.55;       // >= 1B
+      else if(absAmt >= 1e6) scale = 0.7;    // >= 1M
+      else if(absAmt >= 1e3) scale = 0.85;   // >= 1K
+      else scale = 1;
+      const desiredPx = Math.max(10, Math.round(orig * scale));
+      balanceValueEl.style.fontSize = desiredPx + 'px';
+    }catch(e){ /* ignore sizing errors */ }
+
+    // If it now fits, we're done
+    const fitsNow = (available !== null) ? (balanceValueEl.scrollWidth <= available) : (balanceValueEl.scrollWidth <= balanceValueEl.clientWidth);
+    if(fitsNow) return;
+
+    // Otherwise, try progressively shrinking until it fits (as a safety fallback)
+    try{
+      const cs = window.getComputedStyle(balanceValueEl);
+      let curPx = parseFloat(cs.fontSize) || 0;
+      const minPx = Math.max(10, (parseFloat(balanceValueEl.dataset.origFontSize || curPx) * 0.55));
+      let iterations = 0;
+      let fitted = false;
+      while(curPx > minPx && iterations < 40){
+        curPx = Math.max(minPx, Math.floor(curPx - 1));
+        balanceValueEl.style.fontSize = curPx + 'px';
+        const sw = balanceValueEl.scrollWidth;
+        const shouldFit = (available !== null) ? (sw <= available) : (sw <= balanceValueEl.clientWidth);
+        if(shouldFit){ fitted = true; break; }
+        iterations++;
+      }
+      if(fitted) return;
+    }catch(e){ /* continue to fallback */ }
+
+    // fallback: show compact representation (numeric-only) and restore original font-size
+    try{ balanceValueEl.style.fontSize = balanceValueEl.dataset.origFontSize || ''; }catch(e){}
+    balanceValueEl.textContent = compactNumeric || compact;
+  }catch(e){ /* ignore */ }
+}
+
+// Re-evaluate balance display on resize so compact/full toggles appropriately
+window.addEventListener('resize', function(){
+  try{
+    if(typeof displayedBalance !== 'undefined' && displayedBalance !== null){
+      displayBalance(displayedBalance, getCurrentCurrency());
+    }
+  }catch(e){}
+});
 
 /* Build tag order */
 function getAllTags(){
@@ -1103,9 +1719,13 @@ function getFilteredRecords(){
 }
 
 /* Update charts from current filtered view (so search updates chart) */
-function updateChartsForView(range){
+function updateChartsForView(range, mode){
+  // Cleanup existing charts first
+  destroyAllCharts();
+  
   // range: 'weekly'|'monthly'|'yearly'|'all' (optional, defaults to 'all')
   range = range || 'all';
+  mode = mode || 'period'; // 'period' (daily buckets) or 'per' (per-transaction)
   const view = getFilteredRecords();
   const income = view.filter(r=>r.type==='income').reduce((s,r)=>s+r.amount,0);
   const expense = view.filter(r=>r.type==='expense').reduce((s,r)=>s+r.amount,0);
@@ -1116,7 +1736,11 @@ function updateChartsForView(range){
   percentBadge.textContent = `${percent}% gelir`;
 
   // small preview chart (doughnut)
-  if(previewChart) previewChart.destroy();
+  if(previewChart) {
+    previewChart.destroy();
+    previewChart = null;
+  }
+  if(!chartPreview) return; // Exit if element doesn't exist
   previewChart = new Chart(chartPreview.getContext ? chartPreview.getContext('2d') : (function(){ 
     chartPreview.innerHTML = '<canvas id="miniChart"></canvas>'; 
     return document.getElementById('miniChart').getContext('2d');
@@ -1128,66 +1752,997 @@ function updateChartsForView(range){
 
   // summary doughnut + analysis line chart container
   if(mainChart) mainChart.destroy();
+  // preserve controls state (colors for increase/decrease, smoothing, mode) across re-renders
+  const prevColorIncEl = document.getElementById('chartColorInc');
+  const prevColorDecEl = document.getElementById('chartColorDec');
+  // Preserve previous color values if controls existed, otherwise use defaults
+  let prevColorInc = (prevColorIncEl && prevColorIncEl.value) ? prevColorIncEl.value : '#26a69a';
+  let prevColorDec = (prevColorDecEl && prevColorDecEl.value) ? prevColorDecEl.value : '#ef5350';
+  const prevSmoothingEl = document.getElementById('smoothingToggle');
+  let prevSmoothing = prevSmoothingEl ? prevSmoothingEl.value : 'sharp';
+  const prevModeBtn = document.querySelector('#analysisMode [data-mode].active');
+  const prevMode = prevModeBtn ? prevModeBtn.getAttribute('data-mode') : (mode || 'period');
+  // ensure we use previous mode as starting currentMode
+  let currentMode = prevMode || mode || 'period';
+
+  // preserve current currency selection if the controls were already rendered
+  const currentCurrencyEl = document.getElementById('currencySelect');
+  const currentCurrency = currentCurrencyEl ? currentCurrencyEl.value : 'TRY';
+  // preserve previously-entered settings so they don't reset when we rebuild the DOM
+  const prevHeightEl = document.getElementById('chartHeight');
+  const prevYMinEl = document.getElementById('chartYMin');
+  const prevYMaxEl = document.getElementById('chartYMax');
+  let prevChartHeight = prevHeightEl ? prevHeightEl.value : '200';
+  let prevYMin = prevYMinEl ? prevYMinEl.value : '';
+  let prevYMax = prevYMaxEl ? prevYMaxEl.value : '';
+  // preserve previously-selected graph style (classic|bitcoin)
+  const prevGraphStyleEl = document.querySelector('#chartGraphStyle [data-graph].active');
+  let prevGraphStyle = prevGraphStyleEl ? prevGraphStyleEl.getAttribute('data-graph') : 'classic';
+  // preserve whether settings panel was open so re-renders don't close it
+  const prevSettingsEl = document.getElementById('chartSettings');
+  let prevIsOpen = prevSettingsEl ? prevSettingsEl.classList.contains('open') : false;
+
+  try {} catch(e){}
+
+  // If there are saved preferences (saved just before calling update), prefer them
+  try{
+    const saved = JSON.parse(localStorage.getItem('chartPreferences') || '{}');
+    if(saved){
+      if(saved.colorInc) prevColorInc = saved.colorInc;
+      if(saved.colorDec) prevColorDec = saved.colorDec;
+      if(saved.smoothing) prevSmoothing = saved.smoothing;
+      if(saved.height) prevChartHeight = saved.height;
+      if(typeof saved.yMin !== 'undefined') prevYMin = saved.yMin || '';
+      if(typeof saved.yMax !== 'undefined') prevYMax = saved.yMax || '';
+      if(saved.graphStyle) prevGraphStyle = saved.graphStyle;
+      if(typeof saved.isOpen !== 'undefined') prevIsOpen = !!saved.isOpen;
+    }
+  }catch(e){ /* ignore parse errors */ }
+
+  // Determine whether these settings controls existed before (used to avoid re-applying saved prefs on every re-render)
+  const isInitialSettingsRender = !(prevColorIncEl || prevSmoothingEl || prevGraphStyleEl);
+
   chartWrap.innerHTML = `
     <div class="analysis-area">
       <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap">
         <strong>Analiz: Bakiye Zaman Serisi</strong>
-        <div class="analysis-range" role="tablist" aria-label="Zaman aralığı">
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+          <div class="analysis-range" role="tablist" aria-label="Zaman aralığı">
             <button class="btn btn-sm btn-outline-secondary" data-range="weekly">1 Hafta</button>
             <button class="btn btn-sm btn-outline-secondary" data-range="monthly">1 Ay</button>
             <button class="btn btn-sm btn-outline-secondary" data-range="yearly">1 Yıl</button>
             <button class="btn btn-sm btn-outline-secondary" data-range="all">Tüm Zaman</button>
+          </div>
+
+          <div style="display:flex;gap:6px;align-items:center">
+            <label style="font-size:0.85rem; margin-right:6px">Mod:</label>
+            <div id="analysisMode" style="display:flex;gap:6px">
+              <button class="btn btn-sm btn-outline-secondary" data-mode="period">Günlük</button>
+              <button class="btn btn-sm btn-outline-secondary" data-mode="per">İşlem</button>
+            </div>
+          </div>
+          
+          <div style="display:flex;gap:6px;align-items:center">
+            <label style="font-size:0.85rem">Grafik Tipi:</label>
+            <div id="chartGraphStyle" style="display:flex;gap:6px">
+              <button class="btn btn-sm btn-outline-secondary ${prevGraphStyle === 'classic' ? 'active' : ''}" data-graph="classic">Klasik</button>
+              <button class="btn btn-sm btn-outline-secondary ${prevGraphStyle === 'bitcoin' ? 'active' : ''}" data-graph="bitcoin">Mum</button>
+            </div>
+          </div>
+
+          <div style="display:flex;gap:6px;align-items:center">
+            <label style="font-size:0.85rem">Para Birimi:</label>
+            <select id="currencySelect" class="form-select form-select-sm" style="width:auto; min-width:150px" onchange="handleCurrencyChange(this.value)">
+              <option value="TRY" ${currentCurrency === 'TRY' ? 'selected' : ''}>Türk Lirası (₺)</option>
+              <option value="USD" ${currentCurrency === 'USD' ? 'selected' : ''}>Amerikan Doları ($)</option>
+              <option value="EUR" ${currentCurrency === 'EUR' ? 'selected' : ''}>Euro (€)</option>
+              <option value="GLD_Q" ${currentCurrency === 'GLD_Q' ? 'selected' : ''}>Çeyrek Altın</option>
+              <option value="GLD_F" ${currentCurrency === 'GLD_F' ? 'selected' : ''}>Tam Altın</option>
+              <option value="GLD_G" ${currentCurrency === 'GLD_G' ? 'selected' : ''}>Gram Altın (gr)</option>
+              <option value="BTC" ${currentCurrency === 'BTC' ? 'selected' : ''}>Bitcoin (₿)</option>
+            </select>
+          </div>
+
+          <div class="chart-settings-container">
+            <button id="chartSettingsToggle" class="btn btn-sm btn-outline-secondary collapsible-btn ${prevIsOpen ? 'active' : ''}">
+              <span>Grafik Ayarları</span>
+              <i class="fas fa-chevron-down"></i>
+            </button>
+            <div id="chartSettings" class="collapsible-content ${prevIsOpen ? 'open' : ''}">
+              <div class="settings-grid">
+                <div class="settings-item">
+                  <label style="font-size:0.85rem">Çizgi Tipi:</label>
+                  <select id="smoothingToggle" class="form-select form-select-sm">
+                    <option value="sharp" ${prevSmoothing === 'sharp' ? 'selected' : ''}>Keskin</option>
+                    <option value="smooth" ${prevSmoothing === 'smooth' ? 'selected' : ''}>Yumuşak</option>
+                  </select>
+                </div>
+                <div class="settings-item">
+                  <label style="font-size:0.85rem">Artış Rengi:</label>
+                  <input id="chartColorInc" type="color" value="${prevColorInc}" title="Bakiye artma rengi">
+                </div>
+                <div class="settings-item">
+                  <label style="font-size:0.85rem">Azalış Rengi:</label>
+                  <input id="chartColorDec" type="color" value="${prevColorDec}" title="Bakiye azalma rengi">
+                </div>
+                <div class="settings-item">
+                  <label style="font-size:0.85rem">Grafik Yüksekliği (px):</label>
+                  <input id="chartHeight" type="number" class="form-control form-control-sm" value="${prevChartHeight}" min="100" max="800" step="50" style="color:#e8e8e8; background:#131722">
+                </div>
+                <div class="settings-item">
+                  <label style="font-size:0.85rem">Y Ekseni Min:</label>
+                  <input id="chartYMin" type="number" class="form-control form-control-sm" placeholder="Otomatik" value="${prevYMin}" style="color:#e8e8e8; background:#131722">
+                </div>
+                <div class="settings-item">
+                  <label style="font-size:0.85rem">Y Ekseni Max:</label>
+                  <input id="chartYMax" type="number" class="form-control form-control-sm" placeholder="Otomatik" value="${prevYMax}" style="color:#e8e8e8; background:#131722">
+                </div>
+              </div>
+              
+            </div>
+          </div>
+          
         </div>
       </div>
       <div style="margin-top:8px"><canvas id="analysisChart" height="140" tabindex="0" aria-label="Bakiye zaman serisi grafiği"></canvas></div>
     </div>
     <div style="margin-top:10px"><canvas id="summaryChart" height="160" tabindex="0" aria-label="Gelir gider özeti"></canvas></div>
+    <div style="margin-top:8px; text-align:center">
+      <button id="chartScrollUpBtn" class="btn btn-sm btn-outline-secondary" title="Yukarı Çık"><i class="fas fa-arrow-up"></i> Yukarı Çık</button>
+    </div>
   `;
 
   // wire range buttons
   const rangeBtns = chartWrap.querySelectorAll('.analysis-range .btn');
   rangeBtns.forEach(b => {
     b.classList.toggle('active', b.getAttribute('data-range') === range);
-    b.addEventListener('click', ()=> { updateChartsForView(b.getAttribute('data-range')); });
+    b.addEventListener('click', ()=> { console.log('range clicked', b.getAttribute('data-range')); updateChartsForView(b.getAttribute('data-range'), currentMode); });
   });
 
-  // build time-series (cumulative balance) depending on range
-  const series = buildBalanceSeries(view, range);
+  // wire mode buttons
+  const modeBtns = chartWrap.querySelectorAll('#analysisMode [data-mode]');
+  modeBtns.forEach(mb => {
+    mb.classList.toggle('active', mb.getAttribute('data-mode') === currentMode);
+    mb.addEventListener('click', ()=> {
+      currentMode = mb.getAttribute('data-mode');
+      console.log('mode changed', currentMode);
+      modeBtns.forEach(x=>x.classList.remove('active'));
+      mb.classList.add('active');
+      updateChartsForView(range, currentMode);
+    });
+  });
 
-  // analysis line chart
+  // Initialize chart settings after elements are created
+  const chartSettingsToggle = document.getElementById('chartSettingsToggle');
+  const chartSettings = document.getElementById('chartSettings');
+  
+  dbg('Chart settings elementleri kontrol ediliyor:', {
+    toggleButton: !!chartSettingsToggle,
+    settingsPanel: !!chartSettings
+  });
+  // helper to save current chart preferences to localStorage
+  function saveChartPrefs(){
+    try{
+      const prefs = {
+        smoothing: document.getElementById('smoothingToggle')?.value,
+        colorInc: document.getElementById('chartColorInc')?.value,
+        colorDec: document.getElementById('chartColorDec')?.value,
+        height: document.getElementById('chartHeight')?.value,
+        yMin: document.getElementById('chartYMin')?.value,
+        yMax: document.getElementById('chartYMax')?.value,
+        graphStyle: (document.querySelector('#chartGraphStyle [data-graph].active') || {}).getAttribute ? (document.querySelector('#chartGraphStyle [data-graph].active')?.getAttribute('data-graph')) : prevGraphStyle,
+        isOpen: chartSettings ? chartSettings.classList.contains('open') : false
+      };
+      localStorage.setItem('chartPreferences', JSON.stringify(prefs));
+      try{ console.log('chartPrefs saved', prefs); } catch(e){}
+    }catch(e){ console.error('saveChartPrefs error', e); }
+  }
+  
+    if (chartSettingsToggle && chartSettings) {
+    
+    // Load saved preferences only on the initial settings render (don't overwrite user's in-session changes)
+    try {
+      const saved = localStorage.getItem('chartPreferences');
+      dbg('localStorage\'dan yüklenen tercihler:', saved);
+      
+      if (isInitialSettingsRender && saved) {
+        const prefs = JSON.parse(saved);
+        dbg('Parsed preferences:', prefs);
+        
+        const smoothingElement = document.getElementById('smoothingToggle');
+        const colorIncElement = document.getElementById('chartColorInc');
+        const colorDecElement = document.getElementById('chartColorDec');
+        const heightElement = document.getElementById('chartHeight');
+        const yMinElement = document.getElementById('chartYMin');
+        const yMaxElement = document.getElementById('chartYMax');
+        const graphStyleContainer = document.getElementById('chartGraphStyle');
+        
+        dbg('Kontrol elementleri:', {
+          smoothingElement: !!smoothingElement,
+          colorIncElement: !!colorIncElement,
+          colorDecElement: !!colorDecElement
+        });
+        
+        if (prefs.smoothing && smoothingElement) smoothingElement.value = prefs.smoothing;
+        if (prefs.colorInc && colorIncElement) colorIncElement.value = prefs.colorInc;
+        if (prefs.colorDec && colorDecElement) colorDecElement.value = prefs.colorDec;
+        if (typeof prefs.height !== 'undefined' && heightElement) heightElement.value = prefs.height;
+        if (typeof prefs.yMin !== 'undefined' && yMinElement) yMinElement.value = prefs.yMin;
+        if (typeof prefs.yMax !== 'undefined' && yMaxElement) yMaxElement.value = prefs.yMax;
+        if (prefs.graphStyle && graphStyleContainer) {
+          const btns = graphStyleContainer.querySelectorAll('[data-graph]');
+          btns.forEach(b => b.classList.toggle('active', b.getAttribute('data-graph') === prefs.graphStyle));
+        }
+        if (prefs.isOpen) {
+          chartSettings.classList.add('open');
+          chartSettingsToggle.classList.add('active');
+        }
+      }
+    } catch(e) {
+      console.error('Error loading chart preferences:', e);
+    }
+    
+    // Wire up the toggle button
+    chartSettingsToggle.addEventListener('click', (e) => {
+      dbg('Toggle butonuna tıklandı');
+      e.preventDefault();
+      chartSettings.classList.toggle('open');
+      chartSettingsToggle.classList.toggle('active');
+      // Save current prefs when toggling
+      saveChartPrefs();
+    });
+  }
+
+  
+
+  // smoothing, color and graph-style controls
+  const smoothingEl = document.getElementById('smoothingToggle');
+  const colorIncEl = document.getElementById('chartColorInc');
+  const colorDecEl = document.getElementById('chartColorDec');
+  const graphStyleBtns = chartWrap.querySelectorAll('#chartGraphStyle [data-graph]');
+  
+  // Wire color and smoothing change handlers
+  // (Use updateChartsForView handlers below to keep wiring consistent and avoid duplicate rebuilds)
+  // default selection: bitcoin
+  if(graphStyleBtns && graphStyleBtns.length){
+    const anyActive = Array.from(graphStyleBtns).some(b => b.classList.contains('active'));
+    if(!anyActive){ const b = chartWrap.querySelector('#chartGraphStyle [data-graph="bitcoin"]'); if(b) b.classList.add('active'); }
+    graphStyleBtns.forEach(b => {
+      b.addEventListener('click', ()=> {
+        console.log('graph style clicked', b.getAttribute('data-graph'));
+        graphStyleBtns.forEach(x=>x.classList.remove('active'));
+        b.classList.add('active');
+        // Rebuild chart with current settings
+        let series;
+        if(currentMode === 'per') series = buildTransactionSeries(view, range);
+        else series = buildBalanceSeries(view, range);
+        buildCharts(series, range, currentMode);
+        // persist graph style selection
+        try{ const prefs = JSON.parse(localStorage.getItem('chartPreferences') || '{}'); prefs.graphStyle = b.getAttribute('data-graph'); localStorage.setItem('chartPreferences', JSON.stringify(prefs)); try{ console.log('chartPrefs saved', prefs); }catch(e){} }catch(e){}
+      });
+    });
+  }
+  if(smoothingEl) smoothingEl.addEventListener('change', ()=> { console.log('smoothing changed', smoothingEl.value); saveChartPrefs(); updateChartsForView(range, currentMode); });
+  if(colorIncEl) colorIncEl.addEventListener('change', ()=> { console.log('colorInc changed', colorIncEl.value); saveChartPrefs(); updateChartsForView(range, currentMode); });
+  if(colorDecEl) colorDecEl.addEventListener('change', ()=> { console.log('colorDec changed', colorDecEl.value); saveChartPrefs(); updateChartsForView(range, currentMode); });
+
+  // Height and Y-axis min/max controls should also trigger a chart update
+  const heightInput = document.getElementById('chartHeight');
+  const yMinEl = document.getElementById('chartYMin');
+  const yMaxEl = document.getElementById('chartYMax');
+  if(heightInput) heightInput.addEventListener('change', ()=> { console.log('chartHeight changed', heightInput.value); saveChartPrefs(); updateChartsForView(range, currentMode); });
+  if(yMinEl) yMinEl.addEventListener('change', ()=> { console.log('chartYMin changed', yMinEl.value); saveChartPrefs(); updateChartsForView(range, currentMode); });
+  if(yMaxEl) yMaxEl.addEventListener('change', ()=> { console.log('chartYMax changed', yMaxEl.value); saveChartPrefs(); updateChartsForView(range, currentMode); });
+
+  // Currency handling is now done through handleCurrencyChange function
+
+  // build time-series (cumulative balance) depending on range and mode
+  let series;
+  if(currentMode === 'per') series = buildTransactionSeries(view, range);
+  else series = buildBalanceSeries(view, range);
+
+  // Build charts with current view data
+  const chartData = currentMode === 'per' ? buildTransactionSeries(view, range) : buildBalanceSeries(view, range);
+  buildCharts(chartData, range, currentMode);
+}
+
+// Currency conversion rates (normally these would come from an API)
+const currencyRates = {
+  TRY: 1,
+  USD: 0.036, // 1 TL = 0.036 USD
+  EUR: 0.034, // 1 TL = 0.034 EUR
+  GLD_Q: 0.00037, // 1 TL = 0.00037 Çeyrek
+  GLD_F: 0.000093, // 1 TL = 0.000093 Tam
+  GLD_G: 0.00037, // placeholder rate for Gram Altın (adjust as needed)
+  BTC: 0.0000012 // 1 TL = 0.0000012 BTC
+};
+
+// Handle currency changes — expose globally so inline onchange can call it (script is module-scoped)
+window.handleCurrencyChange = function(newCurrency) {
+  try{
+    dbg('Currency changed to:', newCurrency);
+    // Update the bottom-left currency badge
+    try{ updateCurrencyBadge(newCurrency); }catch(e){}
+    // Force destroy all charts before recreating
+    destroyAllCharts();
+    // Re-render with current view settings (will re-evaluate balance display)
+    updateChartsForView();
+  } catch (e) {
+    console.error('handleCurrencyChange error', e);
+  }
+};
+
+const currencySymbols = {
+  TRY: '₺',
+  USD: '$',
+  EUR: '€',
+  GLD_Q: 'Çeyrek',
+  GLD_F: 'Tam',
+  GLD_G: 'gr',
+  BTC: '₿'
+};
+
+// Update the bottom-left currency badge element
+function updateCurrencyBadge(newCurrency){
+  try{
+    const sel = newCurrency || getCurrentCurrency();
+    const el = document.getElementById('currencyBadge');
+    if(!el) return;
+    el.textContent = currencySymbols[sel] || sel;
+    el.setAttribute('aria-label', 'Para birimi: ' + (sel || ''));
+    // refresh visible balance formatting
+    try{ if(typeof displayedBalance !== 'undefined' && displayedBalance !== null) displayBalance(displayedBalance, sel); } catch(e){}
+  }catch(e){ /* ignore */ }
+}
+
+// initialize badge on load
+try{ updateCurrencyBadge(); }catch(e){}
+
+// Helper function to cleanup all charts
+function destroyAllCharts() {
+  if(mainChart) {
+    mainChart.destroy();
+    mainChart = null;
+  }
+  if(previewChart) {
+    previewChart.destroy();
+    previewChart = null;
+  }
+  if(summaryChart) {
+    summaryChart.destroy();
+    summaryChart = null;
+  }
+}
+
+// Format currency based on selected type
+function formatCurrency(amount, currency) {
+  // guard numeric inputs to avoid NaN
+  const num = (typeof amount === 'number' && isFinite(amount)) ? amount : Number(amount);
+  const converted = (isFinite(num) ? num : 0) * (currencyRates[currency] || 1);
+  switch(currency) {
+    case 'TRY':
+      return formatTLNumber(converted) + ' ₺';
+    case 'USD':
+      return '$ ' + converted.toFixed(2);
+    case 'EUR':
+      return '€ ' + converted.toFixed(2);
+    case 'GLD_Q':
+      return converted.toFixed(4) + ' Çeyrek';
+    case 'GLD_F':
+      return converted.toFixed(4) + ' Tam';
+    case 'BTC':
+      return '₿ ' + converted.toFixed(6);
+    default:
+      return formatTLNumber(converted) + ' ₺';
+  }
+}
+
+// Format an amount that is already converted to the target currency
+function formatConverted(amount, currency) {
+  // amount is assumed to be in the target currency already
+  const num = (typeof amount === 'number' && isFinite(amount)) ? amount : Number(amount);
+  const safe = isFinite(num) ? num : 0;
+  switch(currency) {
+    case 'TRY':
+      return formatTLNumber(safe) + ' ₺';
+    case 'USD':
+      return '$ ' + safe.toFixed(2);
+    case 'EUR':
+      return '€ ' + safe.toFixed(2);
+    case 'GLD_Q':
+      return safe.toFixed(4) + ' Çeyrek';
+    case 'GLD_F':
+      return safe.toFixed(4) + ' Tam';
+    case 'BTC':
+      return '₿ ' + safe.toFixed(6);
+    default:
+      return formatTLNumber(safe) + ' ₺';
+  }
+}
+
+// Compact formatting for large numbers used in the prominent balance display
+function formatCompactConverted(amount, currency) {
+  const num = (typeof amount === 'number' && isFinite(amount)) ? amount : Number(amount);
+  const safe = isFinite(num) ? num : 0;
+  const abs = Math.abs(safe);
+  // thresholds: K (1e3), M (1e6), B (1e9)
+  function fmt(n){
+    // use tr-TR decimal separator for the numeric part
+    const s = (Math.round(n * 1000) / 1000).toString().replace('.', ',');
+    return s;
+  }
+  let out;
+  if(abs >= 1e9) {
+    out = fmt(safe / 1e9) + 'B';
+  } else if(abs >= 1e6) {
+    out = fmt(safe / 1e6) + 'M';
+  } else if(abs >= 1e3) {
+    out = fmt(safe / 1e3) + 'K';
+  } else {
+    // small numbers: use normal formatting
+    return formatConverted(safe, currency);
+  }
+  // append currency symbol (use currencySymbols map where appropriate)
+  const sym = currencySymbols[currency] || '';
+  // put symbol after number for TRY & GLD variants, before for USD/EUR/BTC
+  if(currency === 'TRY' || currency.startsWith('GLD')) return out + ' ' + sym;
+  if(currency === 'USD' || currency === 'EUR' || currency === 'BTC') return sym + ' ' + out;
+  return out + (sym ? ' ' + sym : '');
+}
+
+// Build price chart and volume bars
+function buildCharts(series, range, currentMode) {
+  try { /* buildCharts invoked (log suppressed per user request) */ } catch(e){}
   const aCtx = document.getElementById('analysisChart').getContext('2d');
+  const currencySelect = document.getElementById('currencySelect');
+  const selectedCurrency = currencySelect ? currencySelect.value : 'TRY';
+  dbg('Building charts with currency:', selectedCurrency);
+  
+  // Calculate income/expense from current view
+  const view = getFilteredRecords();
+  const income = view.filter(r=>r.type==='income').reduce((s,r)=>s+r.amount,0);
+  const expense = view.filter(r=>r.type==='expense').reduce((s,r)=>s+r.amount,0);
+  const total = income - expense;
+
+  // choose colors and smoothing
+  const incColor = (document.getElementById('chartColorInc') && document.getElementById('chartColorInc').value) ? document.getElementById('chartColorInc').value : '#26a69a';
+  const decColor = (document.getElementById('chartColorDec') && document.getElementById('chartColorDec').value) ? document.getElementById('chartColorDec').value : '#ef5350';
+  // which graph style is active? 'classic' or 'bitcoin'
+  const graphStyleEl = chartWrap.querySelector('#chartGraphStyle [data-graph].active');
+  const graphStyle = graphStyleEl ? graphStyleEl.getAttribute('data-graph') : 'bitcoin';
+  const smoothing = (document.getElementById('smoothingToggle') && document.getElementById('smoothingToggle').value === 'smooth');
+
+  // Settings debug: log only settings-related changes (kept concise)
+  try { console.log('buildCharts settings', { incColor, decColor, smoothing: smoothing ? 'smooth' : 'sharp', graphStyle }); } catch(e){}
+
+  // single dataset with per-segment gradient coloring using Chart.js `segment` option
+  // Convert series values to the selected currency so all datasets use the same units
+  const convertedSeries = {
+    labels: series.labels,
+    values: (series.values || []).map(v => Number(v) * (currencyRates[selectedCurrency] || 1)),
+    volumes: (series.volumes || []).map(v => Number(v) * (currencyRates[selectedCurrency] || 1))
+  };
+  if(series.ohlc) {
+    convertedSeries.ohlc = series.ohlc.map(d => ({
+      o: Number(d.o) * (currencyRates[selectedCurrency] || 1),
+      h: Number(d.h) * (currencyRates[selectedCurrency] || 1),
+      l: Number(d.l) * (currencyRates[selectedCurrency] || 1),
+      c: Number(d.c) * (currencyRates[selectedCurrency] || 1),
+      v: Number(d.v) * (currencyRates[selectedCurrency] || 1)
+    }));
+  }
+
+  const values = convertedSeries.values || [];
+  // compute maximum absolute delta between consecutive points to normalize blend strength
+  const maxAbsDelta = values.reduce((mx, v, i) => {
+    if(i === 0) return mx;
+    const d = Math.abs(v - values[i-1]);
+    return d > mx ? d : mx;
+  }, 0) || 1;
+  const incRgb = hexToRgb(incColor);
+  const decRgb = hexToRgb(decColor);
+
+  // Coerce Y-axis min/max inputs to numbers (avoid passing empty strings)
+  const yMinRaw = document.getElementById('chartYMin')?.value;
+  const yMaxRaw = document.getElementById('chartYMax')?.value;
+  const yMin = (typeof yMinRaw !== 'undefined' && yMinRaw !== '') ? Number(yMinRaw) : undefined;
+  const yMax = (typeof yMaxRaw !== 'undefined' && yMaxRaw !== '') ? Number(yMaxRaw) : undefined;
+
+  if(mainChart) {
+    mainChart.destroy();
+    mainChart = null;
+  }
+  if(!aCtx) return; // Exit if context doesn't exist
   mainChart = new Chart(aCtx, {
     type: 'line',
     data: {
       labels: series.labels,
-      datasets: [{
-        label: 'Bakiye',
-        data: series.values,
-        borderColor: 'rgba(108,99,255,0.95)',
-        backgroundColor: 'rgba(108,99,255,0.08)',
-        fill: true,
-        tension: 0.25,
-        pointRadius: 2
-      }]
+      datasets: [
+        // Convert values to selected currency
+        {
+          type: 'line',
+          label: 'Bakiye (' + currencySymbols[selectedCurrency] + ')',
+          data: convertedSeries.values,
+          borderColor: incColor,
+          backgroundColor: 'transparent',
+          borderWidth: 2,
+          tension: smoothing ? 0.4 : 0,
+          pointRadius: 0,
+          pointHoverRadius: 6,
+          pointBackgroundColor: incColor,
+          pointHoverBackgroundColor: incColor,
+          segment: {
+            borderColor: ctx => {
+              const p0 = ctx.p0.parsed && typeof ctx.p0.parsed.y === 'number' ? ctx.p0.parsed.y : 0;
+              const p1 = ctx.p1.parsed && typeof ctx.p1.parsed.y === 'number' ? ctx.p1.parsed.y : 0;
+              return p1 >= p0 ? incColor : decColor;
+            }
+          }
+        },
+        // Candlestick (bitcoin) or line (classic)
+        ...(graphStyle === 'bitcoin' ? [{
+          type: 'candlestick',
+          label: currentMode === 'per' ? 'Bakiye (işlem bazlı)' : 'Bakiye',
+          data: (convertedSeries.ohlc || []).map(d => ({ o: d.o, h: d.h, l: d.l, c: d.c })),
+          yAxisID: 'y',
+          borderWidth: 1,
+          color: decColor,
+          borderColor: decColor,
+          wickColor: decColor,
+          upColor: incColor,
+          upBorderColor: incColor,
+          upWickColor: incColor
+        }] : [{
+          type: 'line',
+          label: currentMode === 'per' ? 'Bakiye (işlem bazlı)' : 'Bakiye',
+          data: convertedSeries.values,
+          borderColor: incColor,
+          backgroundColor: 'transparent',
+          yAxisID: 'y',
+          fill: false,
+          tension: smoothing ? 0.25 : 0,
+          pointRadius: 3,
+          pointBackgroundColor: function(ctx){
+            const i = ctx.dataIndex;
+            if(typeof i === 'undefined' || i === 0) return incColor;
+            const prev = (convertedSeries.values || [])[i-1] || 0;
+            const cur = (convertedSeries.values || [])[i] || 0;
+            return cur >= prev ? incColor : decColor;
+          },
+          segment: {
+            borderColor: ctx => {
+              const p0 = ctx.p0.parsed && typeof ctx.p0.parsed.y === 'number' ? ctx.p0.parsed.y : 0;
+              const p1 = ctx.p1.parsed && typeof ctx.p1.parsed.y === 'number' ? ctx.p1.parsed.y : 0;
+              return p1 >= p0 ? incColor : decColor;
+            }
+          }
+        }]),
+        // Volume bars (only in bitcoin style)
+        ...(graphStyle === 'bitcoin' ? [{
+          type: 'bar',
+          label: 'İşlem Hacmi',
+          data: convertedSeries.volumes,
+          yAxisID: 'y1',
+          backgroundColor: (convertedSeries.values || []).map((v, i) => {
+            if(i === 0) return hexToRgba(incColor, 0.3);
+            const prev = (convertedSeries.values || [])[i-1] || 0;
+            return v >= prev ? hexToRgba(incColor, 0.3) : hexToRgba(decColor, 0.3);
+          }),
+          borderWidth: 0,
+          barThickness: 4
+        }] : []),
+        // Simple Moving Average (SMA20) - only in bitcoin style
+        ...(graphStyle === 'bitcoin' ? [{
+          type: 'line',
+          label: 'SMA20',
+          data: calculateSMA(values, 20),
+          yAxisID: 'y',
+          borderColor: '#ffeb3b',
+          borderWidth: 1.5,
+          borderDash: [4, 3],
+          pointRadius: 0,
+          fill: false
+        }] : [])
+      ]
     },
     options: {
-      plugins: { legend: { display: false } },
-      scales: { x: { display: true }, y: { display: true, ticks: { callback: v => formatTLNumber(v) } } },
-      maintainAspectRatio: false
+      responsive: true,
+      interaction: { mode: 'nearest', intersect: false },
+      maintainAspectRatio: false,
+      onResize: function(chart, size) {
+        // Keep CSS width responsive and apply user height via CSS only
+        const heightInput = document.getElementById('chartHeight');
+        if (heightInput) {
+          const height = parseInt(heightInput.value);
+          if (height >= 100 && height <= 800) {
+            chart.canvas.style.width = '100%';
+            chart.canvas.style.height = height + 'px';
+          }
+        }
+      },
+      plugins: {
+        legend: { 
+          display: graphStyle === 'bitcoin',
+          position: 'bottom',
+          labels: { usePointStyle: true }
+        },
+        tooltip: {
+          // Use external tooltip: prevent internal drawing but let Chart compute the model
+          enabled: false,
+          external: customTooltip,
+          mode: 'index',
+          intersect: false,
+          callbacks: {
+            label: function(context) {
+              let label = context.dataset.label || '';
+              if (label) label += ': ';
+              if (context.parsed && context.parsed.y !== null) {
+                label += formatConverted(context.parsed.y, selectedCurrency);
+              }
+              return label;
+            }
+          }
+        },
+        // Hook used previously to apply canvas height from the input
+        afterLayout: function(chart) {
+          const heightInput = document.getElementById('chartHeight');
+          if (heightInput) {
+            const height = parseInt(heightInput.value);
+            if (height >= 100 && height <= 800) {
+              chart.canvas.style.width = '100%';
+              chart.canvas.style.height = height + 'px';
+              try { chart.resize(); } catch(e){ /* ignore resize errors */ }
+            }
+          }
+        }
+      },
+      layout: {
+        padding: { left: 10, right: 10, top: 20, bottom: 10 }
+      },
+      backgroundColor: '#131722',
+      borderColor: 'rgba(255,255,255,0.1)',
+      scales: {
+        x: {
+          grid: { color: 'rgba(255,255,255,0.05)', drawBorder: false },
+          ticks: { color: '#9f9fa8' }
+        },
+        y: {
+          grid: { color: 'rgba(255,255,255,0.05)', drawBorder: false },
+          ticks: { color: '#9f9fa8', callback: v => formatConverted(v, selectedCurrency) },
+          min: (typeof yMin !== 'undefined' && !Number.isNaN(yMin)) ? yMin : undefined,
+          max: (typeof yMax !== 'undefined' && !Number.isNaN(yMax)) ? yMax : undefined,
+          suggestedMin: (typeof yMin !== 'undefined' && !Number.isNaN(yMin)) ? yMin : undefined,
+          suggestedMax: (typeof yMax !== 'undefined' && !Number.isNaN(yMax)) ? yMax : undefined
+        },
+        ...(graphStyle === 'bitcoin' ? {
+          y1: {
+            position: 'right',
+            grid: { drawOnChartArea: false, drawBorder: false },
+            ticks: { color: '#9f9fa8', callback: v => formatTLNumber(v) }
+          }
+        } : {})
+      }
     }
   });
 
+  // attach helpful mappings to the chart instance so external tooltip can
+  // map a datapoint index back to a YYYY-MM-DD key (for period mode) or to
+  // the original transaction list (for per-transaction mode)
+  try{ if(mainChart){ mainChart._dateKeys = series.dateKeys || null; mainChart._txs = series.txs || null; mainChart._chartMode = currentMode || null; } } catch(e){}
+
+  // removed temporary mousemove debug handler (was forcing customTooltip)
+
   // summary doughnut under the analysis
+  if (summaryChart) {
+    summaryChart.destroy();
+    summaryChart = null;
+  }
   const ctx = document.getElementById('summaryChart').getContext('2d');
-  const dough = new Chart(ctx, {
+  const convertedIncome = income * currencyRates[selectedCurrency];
+  const convertedExpense = expense * currencyRates[selectedCurrency];
+  
+  summaryChart = new Chart(ctx, {
     type:'doughnut',
-    data:{ labels:['Gelir','Gider'], datasets:[{ data:[income, expense], backgroundColor:['#00c853','#ff5252'] }]},
-    options:{plugins:{legend:{position:'bottom'}}, maintainAspectRatio:false}
+    data:{ 
+      labels:['Gelir','Gider'], 
+      datasets:[{ 
+        data:[convertedIncome, convertedExpense], 
+        backgroundColor:['#00c853','#ff5252'] 
+      }]
+    },
+    options:{
+      plugins:{
+        legend:{position:'bottom'},
+        tooltip: {
+          callbacks: {
+            label: function(context) {
+              const value = context.raw;
+              const label = context.chart.data.labels[context.dataIndex];
+              return label + ': ' + formatConverted(value, selectedCurrency);
+            }
+          }
+        }
+      }, 
+      maintainAspectRatio:false
+    }
   });
 
-  // update balance anim and summary text
-  animateBalanceTo(total);
-  metaSub.textContent = `${view.length} işlem görüntüleniyor • Toplam gelir ${formatTLNumber(income)} ₺`;
+  // Add a 'Yukarı Çık' button under the charts so desktop users can jump back up
+  try{
+    const scrollBtn = document.getElementById('chartScrollUpBtn');
+    if(scrollBtn){
+      scrollBtn.addEventListener('click', (e) => { e.preventDefault(); window.scrollTo({ top: 0, behavior: 'smooth' }); });
+    }
+  }catch(e){/* ignore */}
+
+  // Scroll-up indicator logic: show fixed indicator when balance is not visible (desktop only)
+  (function(){
+    const indicator = document.getElementById('scrollUpIndicator');
+    const balanceEl = document.getElementById('balanceValue');
+    if(!indicator || !balanceEl) return;
+    function check() {
+      try{
+        if(window.innerWidth < 768){ indicator.style.display = 'none'; return; }
+        const rect = balanceEl.getBoundingClientRect();
+        const visible = rect.bottom > 0 && rect.top < window.innerHeight;
+        indicator.style.display = visible ? 'none' : 'flex';
+      }catch(e){ }
+    }
+    indicator.addEventListener('click', ()=> { window.scrollTo({ top: 0, behavior: 'smooth' }); });
+    window.addEventListener('scroll', check);
+    window.addEventListener('resize', check);
+    // initial check
+    setTimeout(check, 300);
+  })();
+
+  // update balance anim and summary text with currency conversion
+  const convertedTotal = total * currencyRates[selectedCurrency];
+  animateBalanceTo(convertedTotal);
+  metaSub.textContent = `${view.length} işlem görüntüleniyor`;
+}
+
+// build per-transaction series (cumulative after each transaction in range)
+function buildTransactionSeries(recordsList, range){
+  // Build a per-transaction cumulative series for the transaction ('per') mode.
+  // The function will return one point per transaction within the selected
+  // date window (weekly/monthly/yearly/all). If there are no transactions in
+  // the window, fall back to daily-bucketed series so the chart still shows
+  // the full time range.
+  const today = new Date(); today.setHours(0,0,0,0);
+  let startDate;
+  if(range === 'weekly') { startDate = new Date(today); startDate.setDate(today.getDate() - 6); }
+  else if(range === 'monthly') { startDate = new Date(today); startDate.setDate(today.getDate() - 29); }
+  else if(range === 'yearly') { startDate = new Date(today); startDate.setDate(today.getDate() - 364); }
+  else { // all -> start at earliest record date
+    const allDates = (records || []).map(r=>new Date(r.date + 'T00:00:00'));
+    startDate = allDates.length ? new Date(Math.min(...allDates)) : new Date(); startDate.setHours(0,0,0,0);
+  }
+
+  // Normalize input items and include original order info
+  const items = (recordsList || []).map(r => ({ id: r.id, date: r.date, amt: (r.type === 'income' ? r.amount : -r.amount), note: r.note, type: r.type, amount: r.amount }));
+  items.forEach(it => { it.d = new Date(it.date + 'T00:00:00'); });
+
+  // Transactions within window (inclusive)
+  const txInWindow = items.slice().filter(it => it.d >= startDate && it.d <= today).sort((a,b) => a.d - b.d || String(a.id || '').localeCompare(String(b.id || '')));
+
+  // If no transactions present in window, fallback to daily buckets (previous behavior)
+  if(!txInWindow.length){
+    // fallback: daily buckets
+    const dayKeys = [];
+    const changesByDay = new Map();
+    const volByDay = new Map();
+    for(let d = new Date(startDate); d <= today; d.setDate(d.getDate()+1)){
+      const key = d.toISOString().slice(0,10);
+      dayKeys.push(key);
+      changesByDay.set(key, 0);
+      volByDay.set(key, 0);
+    }
+    const sortedItems = items.slice().sort((a,b) => a.d - b.d || String(a.date).localeCompare(String(b.date)) );
+    for(const it of sortedItems){
+      const key = it.d.toISOString().slice(0,10);
+      if(changesByDay.has(key)){
+        changesByDay.set(key, (changesByDay.get(key) || 0) + it.amt);
+        volByDay.set(key, (volByDay.get(key) || 0) + Math.abs(it.amt));
+      }
+    }
+    // prior cumulative from records before startDate
+    let priorCum = 0;
+    for(const rr of (records || [])){
+      const d = new Date(rr.date + 'T00:00:00'); if(d < startDate) priorCum += (rr.type === 'income' ? rr.amount : -rr.amount);
+    }
+    const labels = [];
+    const values = [];
+    const volumes = [];
+    let cum = priorCum;
+    for(const key of dayKeys){
+      const d = new Date(key + 'T00:00:00');
+      labels.push(d.toLocaleDateString('tr-TR', { day: '2-digit', month: '2-digit' }));
+      cum += (changesByDay.get(key) || 0);
+      values.push(Math.round(cum*100)/100);
+      volumes.push(volByDay.get(key) || 0);
+    }
+    return { labels, values, volumes };
+  }
+
+  // Compute prior cumulative balance from records earlier than startDate
+  let priorCum = 0;
+  for(const rr of (records || [])){
+    const d = new Date(rr.date + 'T00:00:00'); if(d < startDate) priorCum += (rr.type === 'income' ? rr.amount : -rr.amount);
+  }
+
+  const labels = [];
+  const values = [];
+  const volumes = [];
+  let cum = priorCum;
+  for(const tx of txInWindow){
+    cum += tx.amt;
+    // label per transaction: date + short note (if present)
+    const dLabel = tx.d.toLocaleDateString('tr-TR', { day: '2-digit', month: '2-digit' });
+    const notePart = tx.note ? (' • ' + String(tx.note).slice(0,18)) : '';
+    labels.push(dLabel + notePart);
+    values.push(Math.round(cum*100)/100);
+    volumes.push(Math.abs(tx.amt));
+  }
+
+  // return the txs as well so consumers (tooltip) can map a dataIndex back to the
+  // original transaction metadata (note, type, amount, id)
+  return { labels, values, volumes, txs: txInWindow };
+}
+
+// helper: convert hex to rgba
+function hexToRgba(hex, alpha){
+  if(!hex) return `rgba(108,99,255,${alpha})`;
+  const h = hex.replace('#',''); const bigint = parseInt(h,16);
+  const r = (bigint >> 16) & 255; const g = (bigint >> 8) & 255; const b = bigint & 255;
+  return `rgba(${r},${g},${b},${alpha})`;
+}
+
+// custom tooltip to show detailed info on hover (works for both period and per-transaction modes)
+function customTooltip(context){
+  // simple external tooltip: use title and body
+  const chart = context.chart;
+  // Quick invocation log to verify the function is running (gated)
+  try { dbg('customTooltip invoked', { hasChart: !!chart, chartId: chart && chart.canvas && chart.canvas.id }); } catch(e){ /* ignore */ }
+  const tooltipEl = document.getElementById('chartTooltip');
+  if(!tooltipEl){
+    const div = document.createElement('div'); div.id = 'chartTooltip'; div.style.position='absolute'; div.style.pointerEvents='none'; div.style.background='var(--card)'; div.style.border='1px solid var(--border)'; div.style.padding='8px'; div.style.borderRadius='8px'; div.style.boxShadow='0 6px 20px rgba(0,0,0,0.08)'; div.style.zIndex=2000; div.style.display='none'; document.body.appendChild(div);
+  }
+  const el = document.getElementById('chartTooltip');
+  const tooltipModel = context.tooltip;
+  if(tooltipModel.opacity === 0){ el.style.display = 'none'; return; }
+  if(tooltipModel.dataPoints){
+    const dp = tooltipModel.dataPoints[0];
+    const label = dp.label || '';
+    const graphStyleEl = document.querySelector('#chartGraphStyle [data-graph].active');
+    const graphStyle = graphStyleEl ? graphStyleEl.getAttribute('data-graph') : 'bitcoin';
+    
+    let html = `<div style="font-weight:700">${label}</div>`;
+    
+    const selectedCurrency = (document.getElementById('currencySelect') && document.getElementById('currencySelect').value) || 'TRY';
+    if(graphStyle === 'bitcoin' && dp.raw && typeof dp.raw === 'object'){
+      const ohlc = dp.raw;
+      html += `
+        <div style="margin-top:6px">Açılış: ${formatConverted(ohlc.o, selectedCurrency)}</div>
+        <div>En Yüksek: ${formatConverted(ohlc.h, selectedCurrency)}</div>
+        <div>En Düşük: ${formatConverted(ohlc.l, selectedCurrency)}</div>
+        <div>Kapanış: ${formatConverted(ohlc.c, selectedCurrency)}</div>
+      `;
+    } else {
+      // Prefer raw numeric value when available. If formattedValue is present
+      // (contains currency symbols / thousands separators) attempt to extract
+      // a numeric value safely. If parsing fails, fall back to showing the
+      // original formatted string.
+      let numericValue = null;
+      if (dp.raw !== undefined && typeof dp.raw === 'number' && isFinite(dp.raw)) {
+        numericValue = dp.raw;
+      } else if (dp.raw !== undefined && typeof dp.raw === 'string') {
+        // try to strip non-numeric characters, handle comma as decimal
+        const cleaned = dp.raw.replace(/[^0-9\-\.,]/g, '').replace(/,/g, '.');
+        const n = Number(cleaned);
+        if (isFinite(n)) numericValue = n;
+      }
+      if (numericValue === null && dp.formattedValue && typeof dp.formattedValue === 'string') {
+        const cleaned = dp.formattedValue.replace(/[^0-9\-\.,]/g, '').replace(/,/g, '.');
+        const n = Number(cleaned);
+        if (isFinite(n)) numericValue = n;
+      }
+
+      if (numericValue !== null && isFinite(numericValue)) {
+        html += `<div style="margin-top:6px">Bakiye: ${formatConverted(numericValue, selectedCurrency)}</div>`;
+      } else {
+        // as a last resort, show the raw/formatted text
+        const textVal = dp.formattedValue || dp.raw || '';
+        html += `<div style="margin-top:6px">Bakiye: ${escapeHtml(String(textVal))}</div>`;
+      }
+
+      // Now enrich tooltip content based on current chart mode:
+      try{
+        const modeBtn = document.querySelector('#analysisMode [data-mode].active');
+        const currentMode = modeBtn ? modeBtn.getAttribute('data-mode') : (chart && chart._chartMode) || 'period';
+        const dataIndex = (dp.dataIndex !== undefined ? dp.dataIndex : (dp.index !== undefined ? dp.index : null));
+
+        if(currentMode === 'period'){
+          // Map dataIndex -> YYYY-MM-DD using attached dateKeys on chart
+          const dateKey = (chart && chart._dateKeys && dataIndex !== null) ? chart._dateKeys[dataIndex] : null;
+          if(dateKey){
+            const dayRecs = (records || []).filter(r => r.date === dateKey);
+            if(dayRecs && dayRecs.length){
+              html += `<div style="margin-top:8px; font-weight:600">O günkü işlemler:</div>`;
+              html += `<div style="margin-top:6px; max-height:160px; overflow:auto; padding-right:6px">`;
+              for(const r of dayRecs){
+                const col = (r.type === 'income') ? 'var(--income)' : 'var(--expense)';
+                const note = escapeHtml(r.note || '(not yok)');
+                const amt = formatCurrency(r.amount, selectedCurrency);
+                html += `<div style="display:flex;justify-content:space-between;gap:10px;margin-bottom:6px"><div style="color:${col};font-weight:600">${note}</div><div style="color:${col};font-weight:600">${amt}</div></div>`;
+              }
+              html += `</div>`;
+            }
+          }
+        } else if(currentMode === 'per'){
+          // per-transaction mode: chart._txs maps dataIndex -> tx metadata
+          const tx = (chart && chart._txs && dataIndex !== null) ? chart._txs[dataIndex] : null;
+          if(tx){
+            const col = (tx.type === 'income') ? 'var(--income)' : 'var(--expense)';
+            const note = escapeHtml(tx.note || '(not yok)');
+            const amt = formatCurrency(tx.amount || Math.abs(tx.amt || 0), selectedCurrency);
+            html += `<div style="margin-top:8px; display:flex;justify-content:space-between;gap:10px"><div style="font-weight:600;color:${col}">${note}</div><div style="font-weight:600;color:${col}">${amt}</div></div>`;
+          }
+        }
+      }catch(e){ /* ignore enrichment errors */ }
+    }
+    
+    el.innerHTML = html;
+    const canvasRect = chart.canvas.getBoundingClientRect();
+    const scaleX = canvasRect.width / chart.width || 1;
+    const scaleY = canvasRect.height / chart.height || 1;
+    const caretX = (typeof tooltipModel.caretX === 'number') ? tooltipModel.caretX : (tooltipModel.dataPoints && tooltipModel.dataPoints[0] && tooltipModel.dataPoints[0].element && tooltipModel.dataPoints[0].element.x) || 0;
+    const caretY = (typeof tooltipModel.caretY === 'number') ? tooltipModel.caretY : (tooltipModel.dataPoints && tooltipModel.dataPoints[0] && tooltipModel.dataPoints[0].element && tooltipModel.dataPoints[0].element.y) || 0;
+    // DEBUG LOGS (compact JSON) - print only primitives so it's copy/paste friendly
+    try {
+      const dbgObj = {
+        canvasLeft: Math.round(canvasRect.left*100)/100,
+        canvasTop: Math.round(canvasRect.top*100)/100,
+        canvasWidth: Math.round(canvasRect.width*100)/100,
+        canvasHeight: Math.round(canvasRect.height*100)/100,
+        chartWidth: Math.round(chart.width*100)/100,
+        chartHeight: Math.round(chart.height*100)/100,
+        scaleX: Number(scaleX.toFixed(6)),
+        scaleY: Number(scaleY.toFixed(6)),
+        caretX: Math.round(caretX*100)/100,
+        caretY: Math.round(caretY*100)/100,
+        dpIndex: (dp && (dp.index || (dp.dataIndex !== undefined ? dp.dataIndex : null))) || null,
+        dpDataset: (dp && (dp.datasetIndex || (dp.datasetIndex !== undefined ? dp.datasetIndex : null))) || null,
+        dpRaw: (dp && dp.raw) ? (typeof dp.raw === 'object' ? JSON.stringify(dp.raw) : String(dp.raw)) : null
+      };
+      dbg('tooltip-debug-json', JSON.stringify(dbgObj));
+    } catch(e){ dbg('tooltip-debug-json error', e); }
+    el.style.left = (canvasRect.left + window.scrollX + caretX * scaleX + 12) + 'px';
+    el.style.top = (canvasRect.top + window.scrollY + caretY * scaleY - 10) + 'px';
+    el.style.display = 'block';
+  }
+}
+
+// color helpers: hex -> rgb and lerp
+function hexToRgb(hex){
+  const h = (hex||'#000000').replace('#','');
+  const bigint = parseInt(h,16);
+  return { r: (bigint >> 16) & 255, g: (bigint >> 8) & 255, b: bigint & 255 };
+}
+function lerp(a,b,t){ return a + (b - a) * t; }
+function rgbToRgbaString(rgb, a){ return `rgba(${Math.round(rgb.r)},${Math.round(rgb.g)},${Math.round(rgb.b)},${a})`; }
+
+// calculate Simple Moving Average (SMA)
+function calculateSMA(data, period) {
+  const result = [];
+  for(let i = 0; i < data.length; i++) {
+    if(i < period - 1) {
+      result.push(null);  // not enough data yet
+      continue;
+    }
+    const sum = data.slice(i - period + 1, i + 1).reduce((a,b) => a + b, 0);
+    result.push(Math.round((sum / period) * 100) / 100);
+  }
+  return result;
 }
 
 // Helper: build cumulative balance series for a given range
@@ -1196,8 +2751,6 @@ function buildBalanceSeries(recordsList, range){
   const items = recordsList.map(r => ({ date: r.date, amt: (r.type === 'income' ? r.amount : -r.amount) }));
   // convert string dates to Date objects (assumes YYYY-MM-DD)
   items.forEach(it => { it.d = new Date(it.date + 'T00:00:00'); });
-
-  if(items.length === 0){ return { labels: [], values: [] }; }
 
   const today = new Date();
   today.setHours(0,0,0,0);
@@ -1209,33 +2762,82 @@ function buildBalanceSeries(recordsList, range){
   } else if(range === 'yearly'){
     startDate = new Date(today); startDate.setDate(today.getDate() - 364); // last 365 days
   } else { // all
-    const dates = items.map(i=>i.d);
-    startDate = new Date(Math.min(...dates)); startDate.setHours(0,0,0,0);
+    const dates = items.map(i=>i.d).filter(Boolean);
+    startDate = dates.length ? new Date(Math.min(...dates)) : new Date(); startDate.setHours(0,0,0,0);
   }
 
-  // build daily buckets from startDate to today
+  // build daily OHLC (Open, High, Low, Close) buckets from startDate to today
   const byKey = new Map();
+  const volByKey = new Map();
+  const ohlcMap = new Map();
   const labels = [];
+  
   for(let d = new Date(startDate); d <= today; d.setDate(d.getDate()+1)){
     const key = d.toISOString().slice(0,10);
     byKey.set(key, 0);
+    volByKey.set(key, 0);
+    ohlcMap.set(key, { o: null, h: -Infinity, l: Infinity, c: null, v: 0 });
     // label as DD.MM
     labels.push(new Date(d).toLocaleDateString('tr-TR', { day: '2-digit', month: '2-digit' }));
   }
 
-  // aggregate amounts into corresponding day
-  for(const it of items){
+  // First pass: aggregate running balance at start of each day for open prices
+  let runningBalance = 0;
+  const sortedItems = items.slice().sort((a,b) => a.d.getTime() - b.d.getTime());
+  for(const it of sortedItems){
     const key = it.d.toISOString().slice(0,10);
-    if(byKey.has(key)) byKey.set(key, byKey.get(key) + it.amt);
+    if(ohlcMap.has(key)){
+      const ohlc = ohlcMap.get(key);
+      if(ohlc.o === null) ohlc.o = runningBalance; // capture day's opening balance
+      runningBalance += it.amt;
+      ohlc.h = Math.max(ohlc.h, runningBalance); // update high
+      ohlc.l = Math.min(ohlc.l, runningBalance); // update low
+      ohlc.c = runningBalance; // keep updating close until day's last tx
+      ohlc.v += Math.abs(it.amt); // accumulate volume
+    }
   }
 
-  // produce cumulative series
+  // Fill any missing OHLC values and convert to final balance series
+  let prevClose = 0;
+  for(const key of ohlcMap.keys()){
+    const ohlc = ohlcMap.get(key);
+    if(ohlc.o === null) ohlc.o = prevClose;
+    if(ohlc.h === -Infinity) ohlc.h = ohlc.o;
+    if(ohlc.l === Infinity) ohlc.l = ohlc.o;
+    if(ohlc.c === null) ohlc.c = ohlc.o;
+    prevClose = ohlc.c;
+    byKey.set(key, ohlc.c - ohlc.o); // store net change
+    volByKey.set(key, ohlc.v);
+  }
+
+  // compute prior cumulative balance from records earlier than startDate (use full dataset 'records')
+  let priorCum = 0;
+  for(const rr of (records || [])){
+    const d = new Date(rr.date + 'T00:00:00'); if(d < startDate) priorCum += (rr.type === 'income' ? rr.amount : -rr.amount);
+  }
+
+  // produce OHLC, cumulative series and volumes
   const values = [];
-  let cum = 0;
+  const volumes = [];
+  const ohlc = [];
+  let cum = priorCum;
+  
   // iterate keys in date order
   const orderedKeys = Array.from(byKey.keys()).sort();
-  for(const k of orderedKeys){ cum += byKey.get(k) || 0; values.push(Math.round(cum*100)/100); }
-  return { labels, values };
+  for(const k of orderedKeys){ 
+    const dayOhlc = ohlcMap.get(k);
+    cum += byKey.get(k) || 0;
+    values.push(Math.round(cum*100)/100);
+    volumes.push(volByKey.get(k) || 0);
+    ohlc.push({
+      o: Math.round(dayOhlc.o*100)/100,
+      h: Math.round(dayOhlc.h*100)/100,
+      l: Math.round(dayOhlc.l*100)/100,
+      c: Math.round(dayOhlc.c*100)/100,
+      v: dayOhlc.v
+    });
+  }
+  return { labels, values, volumes, ohlc, dateKeys: orderedKeys };
 }
 
 function getWeekNumber(d){
@@ -1254,12 +2856,17 @@ function renderRecords(){
   const view = getFilteredRecords();
 
   // render items
-  // precompute cumulative balance per record (use ascending date order)
+  // precompute cumulative balance per record using the FULL dataset (all records)
+  // so that filtering/search does not change the absolute balances shown for each record.
   const balanceById = {};
   try{
-    const asc = view.slice().sort((a,b) => a.date.localeCompare(b.date) || String(a.id).localeCompare(String(b.id)) );
+    // use the global `records` array (all transactions) sorted ascending by date
+    const asc = (records || []).slice().sort((a,b) => a.date.localeCompare(b.date) || String(a.id).localeCompare(String(b.id)) );
     let cum = 0;
-    for(const it of asc){ cum += (it.type === 'income' ? it.amount : -it.amount); balanceById[it.id] = Math.round(cum*100)/100; }
+    for(const it of asc){
+      cum += (it.type === 'income' ? it.amount : -it.amount);
+      balanceById[it.id] = Math.round(cum*100)/100;
+    }
   }catch(e){ console.error('[renderRecords] balance calc failed', e); }
 
   for(const r of view){
@@ -1300,7 +2907,7 @@ function openAdd(){
   d_note.value = '';
   d_tags.value = '';
   d_date.value = new Date().toISOString().slice(0,10);
-  document.getElementById('modalOverlay').style.display = 'flex';
+  showMainModal();
 }
 
 /* Open edit */
@@ -1313,14 +2920,129 @@ function openEdit(id){
   d_note.value = rec.note;
   d_tags.value = (rec.tags || []).join(', ');
   d_date.value = rec.date;
-  document.getElementById('modalOverlay').style.display = 'flex';
+  showMainModal();
 }
 
 /* Close modal */
 function closeModal(){
   editingId = null;
-  document.getElementById('modalOverlay').style.display = 'none';
+  hideMainModal();
 }
+
+// Show/hide helpers with animation for the add/edit modal
+function showMainModal(){
+  try{
+    const m = document.getElementById('modalOverlay');
+    if(!m) return;
+    m.style.display = 'flex';
+    m.setAttribute('aria-hidden','false');
+    // ensure any prior closing class removed, then add 'show' on next frame so transition runs
+    m.classList.remove('closing');
+    requestAnimationFrame(()=> m.classList.add('show'));
+  }catch(e){ try{ document.getElementById('modalOverlay').style.display='flex'; }catch(_){} }
+}
+
+function hideMainModal(){
+  try{
+    const m = document.getElementById('modalOverlay');
+    if(!m) return;
+    // add a closing class to start the reverse animation, wait for transition to finish
+    m.classList.add('closing');
+    const box = m.querySelector('.modal-box');
+    const onEnd = (ev) => {
+      // ensure we react to the box's transition end
+      if(ev && ev.target !== box) return;
+      try{ if(box) box.removeEventListener('transitionend', onEnd); }catch(e){}
+      try{ m.classList.remove('show'); m.classList.remove('closing'); m.style.display='none'; m.setAttribute('aria-hidden','true'); }catch(e){}
+    };
+    if(box) box.addEventListener('transitionend', onEnd);
+    // fallback in case transitionend doesn't fire
+    setTimeout(onEnd, 520);
+  }catch(e){ try{ document.getElementById('modalOverlay').style.display='none'; }catch(_){} }
+}
+
+// allow clicking outside the modal-box to close the overlay (common UX)
+(function wireMainModalOverlay(){
+  try{
+    const m = document.getElementById('modalOverlay');
+    if(!m) return;
+    m.addEventListener('click', (e)=>{ if(e.target === m) hideMainModal(); });
+  }catch(e){}
+})();
+
+// --- Wire amount/type interactions for add/edit modal ---
+(function wireAmountAndType(){
+  try{
+    const amt = document.getElementById('d_amount');
+    const type = document.getElementById('d_type');
+    if(!amt || !type) return;
+
+    function applyVisualFor(t){
+      amt.classList.remove('income','expense');
+      type.classList.remove('income','expense');
+      if(t === 'income'){
+        amt.classList.add('income');
+        type.classList.add('income');
+      } else if(t === 'expense'){
+        amt.classList.add('expense');
+        type.classList.add('expense');
+      }
+    }
+
+    function inferTypeFromInput(v){
+      if(!v) return null;
+      const trimmed = String(v).trim();
+      // leading sign preference
+      if(/^\s*[-−]/.test(trimmed)) return 'expense';
+      if(/^\s*[+]/.test(trimmed)) return 'income';
+      // numeric sign check
+      const n = Number(trimmed.replace(/,/g, '.'));
+      if(!Number.isNaN(n)){
+        if(n < 0) return 'expense';
+        if(n > 0) return 'income';
+      }
+      return null;
+    }
+
+    // when user types amount, infer and update select (unless user explicitly picks income/expense?)
+    amt.addEventListener('input', (ev)=>{
+      const v = ev.target.value;
+      const inferred = inferTypeFromInput(v);
+      if(inferred){
+        // set select to inferred
+        type.value = inferred;
+        applyVisualFor(inferred);
+      } else {
+        // if auto, clear styles
+        if(type.value === 'auto'){
+          amt.classList.remove('income','expense');
+          type.classList.remove('income','expense');
+        }
+      }
+    });
+
+    // when user changes the select, update input visuals
+    type.addEventListener('change', ()=>{
+      const v = type.value;
+      if(v === 'income' || v === 'expense') applyVisualFor(v);
+      else { amt.classList.remove('income','expense'); type.classList.remove('income','expense'); }
+    });
+
+    // when modal opens we should re-evaluate current value
+    const origShow = window.showMainModal;
+    if(typeof origShow === 'function'){
+      window.showMainModal = function(){
+        try{ origShow(); } catch(e){}
+        // small delay to allow DOM to render then infer
+        setTimeout(()=>{
+          const inferred = inferTypeFromInput(amt.value);
+          if(inferred){ type.value = inferred; applyVisualFor(inferred); }
+          else if(type.value === 'auto'){ amt.classList.remove('income','expense'); type.classList.remove('income','expense'); }
+        }, 8);
+      };
+    }
+  }catch(e){/* ignore wiring errors */}
+})();
 
 /* Save (add/edit) -> uses saveRecords() implemented after Firebase is ready */
 d_save.addEventListener('click', () => {
@@ -1328,14 +3050,18 @@ d_save.addEventListener('click', () => {
   const rawNote = d_note.value.trim();
   const rawTags = d_tags.value.trim();
   const rawDate = d_date.value || new Date().toISOString().slice(0,10);
-  const val = parseFloat(rawAmt);
+  const val = parseFloat(rawAmt.replace(/,/g,'.'));
   if(isNaN(val) || val === 0){ alert('Geçerli bir tutar gir (pozitif veya negatif sayı).'); return; }
+
+  // Decide type: prefer explicit select unless it's 'auto'
+  let chosenType = 'expense';
+  try{ const sel = document.getElementById('d_type'); if(sel && sel.value && sel.value !== 'auto') chosenType = sel.value; else chosenType = (val > 0 ? 'income' : 'expense'); }catch(e){ chosenType = (val > 0 ? 'income' : 'expense'); }
 
   if(editingId === null){
     const rec = {
       id: String(Date.now() + Math.floor(Math.random()*999)),
       amount: Math.abs(val),
-      type: val > 0 ? 'income' : 'expense',
+      type: chosenType,
       note: rawNote || '(not yok)',
       tags: rawTags ? rawTags.split(',').map(t=>t.trim()).filter(Boolean) : [],
       date: rawDate
@@ -1345,7 +3071,7 @@ d_save.addEventListener('click', () => {
     const rec = records.find(r=>r.id === editingId);
     if(!rec) { alert('Düzenlenecek kayıt bulunamadı'); editingId = null; closeModal(); return; }
     rec.amount = Math.abs(val);
-    rec.type = val > 0 ? 'income' : 'expense';
+    rec.type = chosenType;
     rec.note = rawNote || '(not yok)';
     rec.tags = rawTags ? rawTags.split(',').map(t=>t.trim()).filter(Boolean) : [];
     rec.date = rawDate;
@@ -1358,11 +3084,60 @@ d_save.addEventListener('click', () => {
 
 /* Delete */
 function deleteRecord(id){
-  if(!confirm('Bu kaydı silmek istiyor musun?')) return;
-  records = records.filter(r=> r.id !== id);
-  saveRecords();
-  renderRecords();
+  // open custom confirmation modal
+  try{
+    showDeleteConfirm(id);
+  }catch(e){
+    // fallback to old behavior
+    if(!confirm('Bu kaydı silmek istiyor musun?')) return;
+    records = records.filter(r=> r.id !== id);
+    saveRecords();
+    renderRecords();
+  }
 }
+
+// Show custom delete confirmation modal and wire handlers
+let __pendingDeleteId = null;
+function showDeleteConfirm(id){
+  __pendingDeleteId = id;
+  const m = document.getElementById('deleteConfirmModal');
+  if(!m) return;
+  // ensure visible then add .show on next frame so CSS transition runs
+  m.style.display = 'flex';
+  m.setAttribute('aria-hidden','false');
+  requestAnimationFrame(()=> { m.classList.add('show'); });
+}
+function hideDeleteConfirm(){
+  const m=document.getElementById('deleteConfirmModal');
+  if(!m) return;
+  const inner = m.querySelector('.modal-inner');
+  // remove visible class to start closing transition
+  m.classList.remove('show');
+  // wait for transition on inner to finish then hide
+  const done = () => {
+    try{ m.style.display = 'none'; m.setAttribute('aria-hidden','true'); }catch(e){}
+    try{ inner.removeEventListener('transitionend', done); }catch(e){}
+  };
+  if(inner) inner.addEventListener('transitionend', done);
+  // fallback hide in case transitionend doesn't fire
+  setTimeout(done, 260);
+  __pendingDeleteId = null;
+}
+
+// Attach delete modal buttons immediately (modal exists in DOM now)
+(function wireDeleteModal(){
+  try{
+    const cancelBtn = document.getElementById('cancelDeleteBtn');
+    const confirmBtn = document.getElementById('confirmDeleteBtn');
+    if(cancelBtn) cancelBtn.addEventListener('click', ()=> hideDeleteConfirm());
+    if(confirmBtn) confirmBtn.addEventListener('click', ()=>{
+      try{
+        if(__pendingDeleteId){ records = records.filter(r=> r.id !== __pendingDeleteId); saveRecords(); renderRecords(); }
+      }catch(e){}
+      hideDeleteConfirm();
+    });
+  }catch(e){ /* ignore wiring errors */ }
+})();
 
 /* UI handlers */
 openAddBtn.addEventListener('click', openAdd);
